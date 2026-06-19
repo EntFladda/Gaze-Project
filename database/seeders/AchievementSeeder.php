@@ -28,9 +28,27 @@ class AchievementSeeder extends Seeder
                 'icon' => 'icons/five_challenges.png',
             ],
             [
+                'code' => 'five_missions',
+                'name' => 'On a Roll',
+                'description' => 'Menyelesaikan setidaknya 5 mission.',
+                'icon' => 'icons/five_challenges.png',
+            ],
+            [
+                'code' => 'ten_missions',
+                'name' => 'Mission Marathon',
+                'description' => 'Menyelesaikan setidaknya 10 mission.',
+                'icon' => 'icons/five_challenges.png',
+            ],
+            [
                 'code' => 'first_section',
                 'name' => 'Penjelajah Level',
                 'description' => 'Menuntaskan 1 section pembelajaran.',
+                'icon' => 'icons/five_challenges.png',
+            ],
+            [
+                'code' => 'two_sections',
+                'name' => 'Cross Section',
+                'description' => 'Menuntaskan 2 section pembelajaran.',
                 'icon' => 'icons/five_challenges.png',
             ],
             [
@@ -40,15 +58,39 @@ class AchievementSeeder extends Seeder
                 'icon' => 'icons/perfect_score.png',
             ],
             [
+                'code' => 'high_achiever',
+                'name' => 'High Achiever',
+                'description' => 'Menyelesaikan mission dengan minimal 80% score.',
+                'icon' => 'icons/perfect_score.png',
+            ],
+            [
                 'code' => 'guided_success',
                 'name' => 'Belajar dari Bantuan',
                 'description' => 'Menggunakan bantuan lalu berhasil menjawab dengan benar.',
                 'icon' => 'icons/first_challenge.png',
             ],
             [
+                'code' => 'comeback_win',
+                'name' => 'Comeback Win',
+                'description' => 'Pernah salah, lalu tetap menyelesaikan mission dengan hasil benar dominan.',
+                'icon' => 'icons/first_challenge.png',
+            ],
+            [
+                'code' => 'first_essay',
+                'name' => 'Essay Starter',
+                'description' => 'Menjawab benar soal essay pertama.',
+                'icon' => 'icons/first_challenge.png',
+            ],
+            [
                 'code' => 'three_day_streak',
                 'name' => 'Konsisten Belajar',
                 'description' => 'Mencapai streak belajar 3 hari.',
+                'icon' => 'icons/five_challenges.png',
+            ],
+            [
+                'code' => 'seven_day_streak',
+                'name' => 'Weekly Warrior',
+                'description' => 'Mencapai streak belajar 7 hari.',
                 'icon' => 'icons/five_challenges.png',
             ],
             [

@@ -1,282 +1,569 @@
 @extends('student.layouts.app')
 
 @section('content')
-    <div class="animate-fadeIn">
-        <div class="max-w-6xl mx-auto px-4 py-10">
-            @if (session('success'))
-                <div class="mb-6 rounded-2xl border border-emerald-200 bg-emerald-50 px-5 py-4 text-emerald-700 shadow-sm">
-                    {{ session('success') }}
-                </div>
-            @endif
+    @php
+        $achievementPreviewCount = 8;
+        $hasMoreAchievements = $allAchievements->count() > $achievementPreviewCount;
+        $missionProgress = $totalChallengesCount > 0 ? round(($completedChallengesCount / $totalChallengesCount) * 100) : 0;
+        $profilePhoto = $user->profile_photo;
+        $normalizedProfilePhoto = strtolower((string) $profilePhoto);
+        $hasCustomProfilePhoto = filled($profilePhoto)
+            && ! str_contains($normalizedProfilePhoto, 'default');
+        $studentInitial = strtoupper(mb_substr($user->name ?: 'M', 0, 1));
+    @endphp
 
-            <div class="grid gap-6 lg:grid-cols-[1.45fr_1fr]">
-                <section class="rounded-[28px] border border-rose-200/40 bg-[#fff8f8] p-6 text-slate-900 shadow-xl">
-                    <div class="flex flex-col gap-6 md:flex-row md:items-center">
-                        <div class="shrink-0">
-                            <img src="{{ asset('storage/' . ($user->profile_photo ?? 'profile_photos/default.webp')) }}"
-                                alt="Foto profil"
-                                class="h-28 w-28 rounded-full border-4 border-pink-200 object-cover shadow-lg">
-                        </div>
-
-                        <div class="flex-1">
-                            <p class="text-sm font-semibold uppercase tracking-[0.25em] text-rose-500">Profil Mahasiswa</p>
-                            <h1 class="mt-2 text-3xl font-bold">{{ $user->name }}</h1>
-                            <p class="mt-2 text-slate-500">{{ $user->email }}</p>
-
-                            <div class="mt-4 grid gap-3 sm:grid-cols-2">
-                                <div class="rounded-2xl bg-rose-50 px-4 py-3">
-                                    <p class="text-xs uppercase tracking-[0.2em] text-rose-400">NIM</p>
-                                    <p class="mt-1 font-semibold text-slate-800">{{ $student->nim ?: '-' }}</p>
-                                </div>
-                                <div class="rounded-2xl bg-sky-50 px-4 py-3">
-                                    <p class="text-xs uppercase tracking-[0.2em] text-sky-500">Peringkat Mingguan</p>
-                                    <p class="mt-1 font-semibold text-slate-800">#{{ $weeklyRank }}</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="shrink-0">
-                            <a href="{{ route('student.profile.edit') }}"
-                                class="inline-flex items-center rounded-2xl bg-gradient-to-r from-pink-600 to-rose-500 px-5 py-3 font-semibold text-white shadow-lg transition hover:scale-[1.02] hover:shadow-pink-300/30">
-                                Edit Profil
-                            </a>
-                        </div>
-                    </div>
-                </section>
-
-                <section class="rounded-[28px] border border-pink-200/25 bg-[#4a1327] p-6 text-white shadow-xl">
-                    <p class="text-sm font-semibold uppercase tracking-[0.25em] text-pink-200/80">Rank dan EXP</p>
-                    <h2 class="mt-2 text-2xl font-bold">{{ $currentRank?->name ?? 'Belum Ada Rank' }}</h2>
-                    <p class="mt-2 text-sm text-rose-100/80">
-                        EXP {{ number_format($student->exp) }}
-                        @if ($currentRank)
-                            / {{ number_format($currentRank->max_exp) }}
-                        @endif
-                    </p>
-
-                    <div class="mt-5 h-3 overflow-hidden rounded-full bg-white/15">
-                        <div class="h-3 rounded-full bg-gradient-to-r from-amber-300 via-pink-300 to-rose-300"
-                            style="width: {{ $expProgress }}%"></div>
-                    </div>
-
-                    <div class="mt-6 grid grid-cols-2 gap-4">
-                        <div class="rounded-2xl bg-white/10 px-4 py-4">
-                            <p class="text-xs uppercase tracking-[0.2em] text-pink-100/70">Total Score</p>
-                            <p class="mt-2 text-2xl font-bold">{{ number_format($student->total_score) }}</p>
-                        </div>
-                        <div class="rounded-2xl bg-white/10 px-4 py-4">
-                            <p class="text-xs uppercase tracking-[0.2em] text-pink-100/70">Streak</p>
-                            <p class="mt-2 text-2xl font-bold">{{ $student->streak }} hari</p>
-                        </div>
-                    </div>
-                </section>
-            </div>
-
-            <div class="mt-6 grid gap-6 xl:grid-cols-[1.25fr_1fr]">
-                <div class="space-y-6">
-                    <section class="rounded-[28px] border border-rose-200/40 bg-[#fff8f8] p-6 text-slate-900 shadow-xl">
-                        <div class="flex items-center justify-between gap-4">
-                            <div>
-                                <p class="text-sm font-semibold uppercase tracking-[0.25em] text-rose-500">Ringkasan Akademik</p>
-                                <h2 class="mt-2 text-2xl font-bold">Informasi Mahasiswa</h2>
-                            </div>
-                        </div>
-
-                        <div class="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-                            <div class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4">
-                                <p class="text-xs uppercase tracking-[0.2em] text-slate-400">Program Studi</p>
-                                <p class="mt-2 font-semibold">{{ $student->prodi ?: '-' }}</p>
-                            </div>
-                            <div class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4">
-                                <p class="text-xs uppercase tracking-[0.2em] text-slate-400">Semester</p>
-                                <p class="mt-2 font-semibold">{{ $student->semester ?: '-' }}</p>
-                            </div>
-                            <div class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4">
-                                <p class="text-xs uppercase tracking-[0.2em] text-slate-400">Kelas</p>
-                                <p class="mt-2 font-semibold">{{ $student->class ?: '-' }}</p>
-                            </div>
-                            <div class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4">
-                                <p class="text-xs uppercase tracking-[0.2em] text-slate-400">No. Telepon</p>
-                                <p class="mt-2 font-semibold">{{ $student->phone_number ?: '-' }}</p>
-                            </div>
-                            <div class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4">
-                                <p class="text-xs uppercase tracking-[0.2em] text-slate-400">Agama</p>
-                                <p class="mt-2 font-semibold">{{ $student->religion ?: '-' }}</p>
-                            </div>
-                            <div class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4">
-                                <p class="text-xs uppercase tracking-[0.2em] text-slate-400">Jenis Kelamin</p>
-                                <p class="mt-2 font-semibold">{{ $student->gender ?: '-' }}</p>
-                            </div>
-                        </div>
-
-                        <div class="mt-4 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4">
-                            <p class="text-xs uppercase tracking-[0.2em] text-slate-400">Alamat</p>
-                            <p class="mt-2 leading-7 text-slate-700">{{ $student->address ?: 'Alamat belum diisi.' }}</p>
-                        </div>
-                    </section>
-
-                    <section class="rounded-[28px] border border-rose-200/40 bg-[#fff8f8] p-6 text-slate-900 shadow-xl">
-                        <p class="text-sm font-semibold uppercase tracking-[0.25em] text-rose-500">Progres Belajar</p>
-                        <h2 class="mt-2 text-2xl font-bold">Status Misi Saat Ini</h2>
-
-                        <div class="mt-6 grid gap-4 md:grid-cols-2">
-                            <div class="rounded-2xl bg-gradient-to-br from-rose-50 to-pink-50 p-5 border border-rose-200">
-                                <p class="text-xs uppercase tracking-[0.2em] text-rose-400">Section Aktif</p>
-                                <p class="mt-2 text-xl font-bold">
-                                    {{ $student->currentSection?->name ? 'Section ' . $student->currentSection->order . ' - ' . $student->currentSection->name : 'Belum ada section aktif' }}
-                                </p>
-                            </div>
-                            <div class="rounded-2xl bg-gradient-to-br from-sky-50 to-blue-50 p-5 border border-sky-200">
-                                <p class="text-xs uppercase tracking-[0.2em] text-sky-500">Mission Aktif</p>
-                                <p class="mt-2 text-xl font-bold">
-                                    {{ $currentChallenge?->title ?? 'Belum ada mission aktif' }}
-                                </p>
-                                <p class="mt-2 text-sm text-slate-500">
-                                    {{ $currentChallenge?->section?->name ? 'Masih berada di ' . $currentChallenge->section->name : 'Pilih mission dari halaman missions untuk mulai belajar.' }}
-                                </p>
-                            </div>
-                        </div>
-
-                        <div class="mt-4 grid gap-4 sm:grid-cols-3">
-                            <div class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4">
-                                <p class="text-xs uppercase tracking-[0.2em] text-slate-400">Mission Selesai</p>
-                                <p class="mt-2 text-2xl font-bold">{{ $completedChallengesCount }} / {{ $totalChallengesCount }}</p>
-                            </div>
-                            <div class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4">
-                                <p class="text-xs uppercase tracking-[0.2em] text-slate-400">Section Terbuka</p>
-                                <p class="mt-2 text-2xl font-bold">{{ $unlockedSectionsCount }}</p>
-                            </div>
-                            <div class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4">
-                                <p class="text-xs uppercase tracking-[0.2em] text-slate-400">Section Tuntas</p>
-                                <p class="mt-2 text-2xl font-bold">{{ $completedSectionsCount }}</p>
-                            </div>
-                        </div>
-                    </section>
-
-                    <section class="rounded-[28px] border border-rose-200/40 bg-[#fff8f8] p-6 text-slate-900 shadow-xl">
-                        <div class="flex items-center justify-between gap-4">
-                            <div>
-                                <p class="text-sm font-semibold uppercase tracking-[0.25em] text-rose-500">Achievements</p>
-                                <h2 class="mt-2 text-2xl font-bold">Pencapaian Belajar</h2>
-                            </div>
-                            <div class="rounded-2xl bg-rose-50 px-4 py-3 text-right">
-                                <p class="text-xs uppercase tracking-[0.2em] text-rose-400">Terbuka</p>
-                                <p class="mt-1 font-semibold">{{ count($unlockedAchievementIds) }} / {{ $allAchievements->count() }}</p>
-                            </div>
-                        </div>
-
-                        <div class="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-                            @foreach ($allAchievements as $achievement)
-                                @php
-                                    $pivotData = $student->achievements->firstWhere('id', $achievement->id)?->pivot;
-                                    $isUnlocked = !is_null($pivotData);
-                                    $unlockedAt = $pivotData?->unlocked_at
-                                        ? \Carbon\Carbon::parse($pivotData->unlocked_at)->translatedFormat('d F Y, H:i')
-                                        : null;
-                                @endphp
-
-                                <button type="button"
-                                    onclick='showModal(@json(asset("storage/" . $achievement->icon)), @json($achievement->name), @json($achievement->description), {{ $isUnlocked ? "true" : "false" }}, @json($unlockedAt ?? ""))'
-                                    class="rounded-2xl border p-4 text-center transition hover:scale-[1.03] {{ $isUnlocked ? 'border-pink-200 bg-gradient-to-br from-white to-rose-50 shadow-sm' : 'border-slate-200 bg-slate-100 opacity-60 grayscale' }}">
-                                    <img src="{{ asset('storage/' . $achievement->icon) }}" alt="{{ $achievement->name }}"
-                                        class="mx-auto h-16 w-16 object-contain">
-                                    <p class="mt-3 text-sm font-semibold text-slate-700">{{ $achievement->name }}</p>
-                                </button>
-                            @endforeach
-                        </div>
-                    </section>
-                </div>
-
-                <section class="rounded-[28px] border border-pink-200/25 bg-[#4a1327] p-6 text-white shadow-xl">
-                    <p class="text-sm font-semibold uppercase tracking-[0.25em] text-pink-200/80">Leaderboard</p>
-                    <h2 class="mt-2 text-2xl font-bold">Papan Skor Mingguan</h2>
-                    <p class="mt-2 text-sm text-rose-100/75">Posisi ditentukan dari weekly score mahasiswa.</p>
-
-                    <div class="mt-6 space-y-3">
-                        @foreach ($leaderboard as $index => $entry)
-                            @php
-                                $isCurrentUser = $entry->name === $user->name;
-                            @endphp
-                            <div
-                                class="flex items-center gap-3 rounded-2xl border px-4 py-3 {{ $isCurrentUser ? 'border-amber-300/70 bg-amber-100 text-slate-900' : 'border-white/10 bg-white/10 text-white' }}">
-                                <div class="w-8 text-center text-sm font-bold">{{ $index + 1 }}</div>
-                                <img src="{{ asset('storage/' . $entry->profile_photo) }}" alt="{{ $entry->name }}"
-                                    class="h-11 w-11 rounded-full border border-white/30 object-cover">
-                                <div class="min-w-0 flex-1">
-                                    <p class="truncate font-semibold">{{ $entry->name }}</p>
-                                    <p class="text-xs {{ $isCurrentUser ? 'text-slate-600' : 'text-rose-100/70' }}">
-                                        {{ $isCurrentUser ? 'Anda' : 'Mahasiswa' }}
-                                    </p>
-                                </div>
-                                <div class="text-right">
-                                    <p class="text-sm font-bold">{{ number_format($entry->weekly_score) }}</p>
-                                    <p class="text-xs {{ $isCurrentUser ? 'text-slate-600' : 'text-rose-100/70' }}">pts</p>
-                                </div>
-                            </div>
-                        @endforeach
-                    </div>
-                </section>
-            </div>
-        </div>
-    </div>
-
-    <div id="achievementModal"
-        class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 px-4">
-        <div class="relative w-full max-w-md rounded-[28px] border border-pink-200/35 bg-[#fff8f8] p-6 text-slate-900 shadow-2xl">
-            <button type="button" onclick="closeModal()"
-                class="absolute right-4 top-4 flex h-9 w-9 items-center justify-center rounded-full bg-rose-100 text-rose-600 transition hover:bg-rose-200">
-                &times;
-            </button>
-
-            <div class="flex justify-center">
-                <div class="flex h-24 w-24 items-center justify-center rounded-full border-4 border-pink-200 bg-white shadow-inner">
-                    <img id="modalIcon" src="" alt="Achievement Icon" class="h-16 w-16 object-contain">
-                </div>
-            </div>
-
-            <h3 id="modalName" class="mt-5 text-center text-2xl font-bold"></h3>
-            <p id="modalDescription" class="mt-3 text-center leading-7 text-slate-600"></p>
-            <div id="modalStatus"
-                class="mx-auto mt-5 inline-flex rounded-full bg-rose-100 px-4 py-2 text-sm font-semibold text-rose-700">
-            </div>
-        </div>
-    </div>
-
-    <audio id="hover-sound" src="{{ asset('sfx/hover.mp3') }}"></audio>
-    <audio id="click-sound" src="{{ asset('sfx/click.mp3') }}"></audio>
-
-    <script>
-        function showModal(icon, name, description, isUnlocked, unlockedAt) {
-            document.getElementById('modalIcon').src = icon;
-            document.getElementById('modalName').innerText = name;
-            document.getElementById('modalDescription').innerText = description;
-            document.getElementById('modalStatus').innerText = isUnlocked ?
-                `Dibuka pada: ${unlockedAt}` :
-                'Belum terbuka';
-
-            const modal = document.getElementById('achievementModal');
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
+    <style>
+        .student-dashboard {
+            max-width: 1180px;
+            margin: 0 auto;
+            padding: 32px 18px 52px;
+            color: #0A2342;
         }
 
-        function closeModal() {
-            const modal = document.getElementById('achievementModal');
-            modal.classList.remove('flex');
-            modal.classList.add('hidden');
+        .sd-grid {
+            display: grid;
+            gap: 18px;
         }
 
-        function playHoverSound() {
-            const audio = document.getElementById("hover-sound");
-            if (audio) {
-                audio.currentTime = 0;
-                audio.play();
+        .sd-main-grid {
+            grid-template-columns: minmax(0, 1.35fr) minmax(320px, .85fr);
+        }
+
+        .sd-card {
+            background: #F4F8FC;
+            border: 1px solid rgba(29, 95, 214, .25);
+            border-radius: 24px;
+            box-shadow: 0 18px 42px rgba(34, 7, 20, .16);
+        }
+
+        .sd-card-dark {
+            background: #0A2342;
+            color: #fff;
+            border: 1px solid rgba(255, 255, 255, .12);
+        }
+
+        .sd-section {
+            padding: 24px;
+        }
+
+        .sd-eyebrow {
+            margin: 0 0 8px;
+            color: #1D5FD6;
+            font-size: 13px;
+            font-weight: 800;
+            letter-spacing: .26em;
+            text-transform: uppercase;
+        }
+
+        .sd-title {
+            margin: 0;
+            font-size: clamp(26px, 3vw, 42px);
+            font-weight: 900;
+            line-height: 1.05;
+        }
+
+        .sd-subtitle {
+            margin: 8px 0 0;
+            color: #6A7C93;
+            font-size: 15px;
+        }
+
+        .sd-profile {
+            display: grid;
+            grid-template-columns: auto minmax(0, 1fr);
+            align-items: center;
+            gap: 22px;
+        }
+
+        .sd-avatar {
+            width: 112px;
+            height: 112px;
+            border-radius: 999px;
+            border: 5px solid #B7CCE6;
+            object-fit: cover;
+            background: #fff;
+            box-shadow: 0 12px 28px rgba(29, 95, 214, .24);
+        }
+
+        .sd-avatar-fallback {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            flex: 0 0 112px;
+            color: #fff;
+            font-size: 42px;
+            font-weight: 900;
+            background:
+                radial-gradient(circle at 35% 22%, rgba(255, 230, 109, .95), transparent 28%),
+                linear-gradient(135deg, #1D5FD6 0%, #123A68 55%, #071426 100%);
+        }
+
+        .sd-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 46px;
+            padding: 0 20px;
+            border-radius: 16px;
+            background: linear-gradient(135deg, #1D5FD6, #2BA7D8);
+            color: #fff;
+            font-weight: 800;
+            text-decoration: none;
+            box-shadow: 0 14px 30px rgba(29, 95, 214, .24);
+        }
+
+        .sd-profile-actions {
+            grid-column: 1 / -1;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            justify-content: flex-end;
+            align-items: center;
+            padding-top: 18px;
+            border-top: 1px solid #DCE7F3;
+        }
+
+        .sd-button-secondary {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 46px;
+            padding: 0 20px;
+            border-radius: 16px;
+            border: 1px solid #B7CCE6;
+            background: #F4F8FC;
+            color: #1D5FD6;
+            font-weight: 850;
+            text-decoration: none;
+        }
+
+        .sd-mini-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 12px;
+        }
+
+        .sd-info-box {
+            min-width: 0;
+            padding: 14px 16px;
+            border-radius: 18px;
+            border: 1px solid #B7CCE6;
+            background: rgba(255, 255, 255, .7);
+        }
+
+        .sd-label {
+            margin: 0;
+            color: #1D5FD6;
+            font-size: 12px;
+            font-weight: 900;
+            letter-spacing: .18em;
+            text-transform: uppercase;
+        }
+
+        .sd-value {
+            margin: 6px 0 0;
+            color: #0A2342;
+            font-size: 18px;
+            font-weight: 850;
+            overflow-wrap: anywhere;
+        }
+
+        .sd-stats {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 14px;
+        }
+
+        .sd-stat {
+            padding: 18px;
+            border-radius: 20px;
+            border: 1px solid #B7CCE6;
+            background: #F4F8FC;
+        }
+
+        .sd-stat strong {
+            display: block;
+            margin-top: 8px;
+            font-size: 27px;
+            line-height: 1;
+        }
+
+        .sd-progress-track {
+            height: 10px;
+            overflow: hidden;
+            border-radius: 999px;
+            background: #DCE7F3;
+        }
+
+        .sd-progress-fill {
+            height: 100%;
+            border-radius: inherit;
+            background: linear-gradient(90deg, #1D5FD6, #F2A93B);
+        }
+
+        .sd-panel-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 12px;
+        }
+
+        .sd-soft-box {
+            padding: 16px;
+            border-radius: 18px;
+            border: 1px solid #B7CCE6;
+            background: #F4F8FC;
+        }
+
+        .sd-dark-muted {
+            color: rgba(183, 204, 230, .78);
+        }
+
+        .sd-rankbar {
+            margin: 18px 0;
+            height: 10px;
+            overflow: hidden;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, .18);
+        }
+
+        .sd-rankbar span {
+            display: block;
+            height: 100%;
+            width: var(--progress, 0%);
+            border-radius: inherit;
+            background: linear-gradient(90deg, #2BA7D8, #2BA7D8);
+        }
+
+        .sd-leaderboard {
+            margin-top: 18px;
+            display: grid;
+            gap: 10px;
+        }
+
+        .sd-rank-row {
+            display: grid;
+            grid-template-columns: 34px 44px minmax(0, 1fr) auto;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            border-radius: 18px;
+            border: 1px solid rgba(255, 255, 255, .12);
+            background: rgba(255, 255, 255, .1);
+        }
+
+        .sd-rank-row.is-current {
+            color: #0A2342;
+            border-color: rgba(255, 232, 91, .85);
+            background: #DCE7F3;
+        }
+
+        .sd-rank-row img {
+            width: 44px;
+            height: 44px;
+            border-radius: 999px;
+            object-fit: cover;
+            background: #fff;
+        }
+
+        .sd-achievements {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 12px;
+        }
+
+        .sd-achievement {
+            border: 1px solid #B7CCE6;
+            border-radius: 18px;
+            background: #fff;
+            padding: 14px 10px;
+            text-align: center;
+            transition: transform .18s ease, box-shadow .18s ease;
+        }
+
+        .sd-achievement:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 22px rgba(29, 95, 214, .14);
+        }
+
+        .sd-achievement.is-locked {
+            opacity: .48;
+            filter: grayscale(1);
+            background: #E8F0F8;
+        }
+
+        .sd-achievement img {
+            width: 54px;
+            height: 54px;
+            object-fit: contain;
+            margin: 0 auto;
+        }
+
+        .sd-modal {
+            position: fixed;
+            inset: 0;
+            z-index: 50;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 18px;
+            background: rgba(0, 0, 0, .55);
+        }
+
+        .sd-modal.is-open {
+            display: flex;
+        }
+
+        @media (max-width: 980px) {
+            .sd-main-grid,
+            .sd-profile {
+                grid-template-columns: 1fr;
+            }
+
+            .sd-stats,
+            .sd-mini-grid,
+            .sd-achievements {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
             }
         }
 
-        document.addEventListener("DOMContentLoaded", function() {
-            document.querySelectorAll(".hover-sfx").forEach((el) => {
-                el.addEventListener("mouseenter", playHoverSound);
+        @media (max-width: 560px) {
+            .student-dashboard {
+                padding-inline: 12px;
+            }
+
+            .sd-section {
+                padding: 18px;
+            }
+
+            .sd-stats,
+            .sd-mini-grid,
+            .sd-panel-grid,
+            .sd-achievements {
+                grid-template-columns: 1fr;
+            }
+
+            .sd-avatar {
+                width: 92px;
+                height: 92px;
+                flex-basis: 92px;
+                font-size: 34px;
+            }
+        }
+    </style>
+
+    <main class="student-dashboard">
+        @if (session('success'))
+            <div class="sd-card sd-section" style="margin-bottom: 18px; border-color: #bbf7d0; background: #f0fdf4; color: #166534; box-shadow: none;">
+                {{ session('success') }}
+            </div>
+        @endif
+
+        <div class="sd-grid sd-main-grid">
+            <section class="sd-card sd-section">
+                <div class="sd-profile">
+                    @if ($hasCustomProfilePhoto)
+                        <img class="sd-avatar" src="{{ asset('storage/' . $profilePhoto) }}" alt="Foto profil {{ $user->name }}">
+                    @else
+                        <div class="sd-avatar sd-avatar-fallback" aria-label="Foto profil belum diatur">
+                            {{ $studentInitial }}
+                        </div>
+                    @endif
+
+                    <div>
+                        <p class="sd-eyebrow">Dashboard Mahasiswa</p>
+                        <h1 class="sd-title">{{ $user->name }}</h1>
+                        <p class="sd-subtitle">{{ $user->email }}</p>
+
+                        <div class="sd-mini-grid" style="margin-top: 18px;">
+                            <div class="sd-info-box">
+                                <p class="sd-label">NIM</p>
+                                <p class="sd-value">{{ $student->nim ?: '-' }}</p>
+                            </div>
+                            <div class="sd-info-box">
+                                <p class="sd-label">Kelas</p>
+                                <p class="sd-value">{{ $student->class ?: '-' }}</p>
+                            </div>
+                            <div class="sd-info-box">
+                                <p class="sd-label">Mingguan</p>
+                                <p class="sd-value">{{ $weeklyRank ? '#' . $weeklyRank : 'Belum masuk' }}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="sd-profile-actions">
+                        <a class="sd-button-secondary" href="{{ route('student.profile.detail') }}">Detail</a>
+                        <a class="sd-button" href="{{ route('student.profile.edit') }}">Edit Profil</a>
+                    </div>
+                </div>
+            </section>
+
+            <aside class="sd-card sd-card-dark sd-section">
+                <p class="sd-eyebrow" style="color: #B7CCE6;">Peringkat dan EXP</p>
+                <h2 class="sd-title" style="font-size: 30px;">{{ $currentRank?->name ?? 'Belum Ada Rank' }}</h2>
+                <p class="sd-dark-muted" style="margin-top: 8px;">
+                    EXP {{ number_format($student->exp) }}@if ($currentRank) / {{ number_format($currentRank->max_exp) }}@endif
+                </p>
+
+                <div class="sd-rankbar"><span style="--progress: {{ $expProgress }}%"></span></div>
+
+                <div class="sd-panel-grid">
+                    <div class="sd-soft-box" style="background: rgba(255,255,255,.1); border-color: rgba(255,255,255,.12);">
+                        <p class="sd-label" style="color:#B7CCE6;">Total Poin</p>
+                        <p class="sd-value" style="color:#fff; font-size:28px;">{{ number_format($student->total_score) }}</p>
+                    </div>
+                    <div class="sd-soft-box" style="background: rgba(255,255,255,.1); border-color: rgba(255,255,255,.12);">
+                        <p class="sd-label" style="color:#B7CCE6;">Hari Beruntun</p>
+                        <p class="sd-value" style="color:#fff; font-size:28px;">{{ $student->streak }} hari</p>
+                    </div>
+                </div>
+            </aside>
+        </div>
+
+        <section class="sd-card sd-section" style="margin-top: 18px;">
+            <div style="display:flex; justify-content:space-between; gap:16px; flex-wrap:wrap; align-items:flex-end;">
+                <div>
+                    <p class="sd-eyebrow">Progres Belajar</p>
+                    <h2 class="sd-title" style="font-size: 30px;">Ringkasan Mission</h2>
+                </div>
+                <strong style="font-size: 30px; color:#1D5FD6;">{{ $missionProgress }}%</strong>
+            </div>
+
+            <div class="sd-progress-track" style="margin-top: 18px;">
+                <div class="sd-progress-fill" style="width: {{ $missionProgress }}%"></div>
+            </div>
+
+            <div class="sd-stats" style="margin-top: 18px;">
+                <div class="sd-stat">
+                    <p class="sd-label">Mission Selesai</p>
+                    <strong>{{ $completedChallengesCount }} / {{ $totalChallengesCount }}</strong>
+                </div>
+                <div class="sd-stat">
+                    <p class="sd-label">Section Terbuka</p>
+                    <strong>{{ $unlockedSectionsCount }}</strong>
+                </div>
+                <div class="sd-stat">
+                    <p class="sd-label">Section Tuntas</p>
+                    <strong>{{ $completedSectionsCount }}</strong>
+                </div>
+                <div class="sd-stat">
+                    <p class="sd-label">Mission Aktif</p>
+                    <strong style="font-size: 20px; line-height: 1.2;">{{ $currentChallenge?->title ?? 'Belum ada' }}</strong>
+                </div>
+            </div>
+        </section>
+
+        <div class="sd-grid sd-main-grid" style="margin-top: 18px; align-items:start;">
+            <div class="sd-grid">
+                <section class="sd-card sd-section">
+                    <div style="display:flex; justify-content:space-between; gap:16px; flex-wrap:wrap; align-items:flex-end;">
+                        <div>
+                            <p class="sd-eyebrow">Pencapaian</p>
+                            <h2 class="sd-title" style="font-size: 30px;">Badge Belajar</h2>
+                        </div>
+                        <div class="sd-info-box">
+                            <p class="sd-label">Terbuka</p>
+                            <p class="sd-value">{{ count($unlockedAchievementIds) }} / {{ $allAchievements->count() }}</p>
+                        </div>
+                    </div>
+
+                    <div class="sd-achievements" style="margin-top: 18px;">
+                        @foreach ($allAchievements as $achievement)
+                            @php
+                                $pivotData = $student->achievements->firstWhere('id', $achievement->id)?->pivot;
+                                $isUnlocked = ! is_null($pivotData);
+                                $unlockedAt = $pivotData?->unlocked_at
+                                    ? \Carbon\Carbon::parse($pivotData->unlocked_at)->translatedFormat('d F Y, H:i')
+                                    : null;
+                            @endphp
+
+                            <button type="button"
+                                class="sd-achievement {{ $isUnlocked ? '' : 'is-locked' }} {{ $loop->index >= $achievementPreviewCount ? 'hidden extra-achievement' : '' }}"
+                                onclick='showAchievement(@json(asset("storage/" . $achievement->icon)), @json($achievement->name), @json($achievement->description), {{ $isUnlocked ? "true" : "false" }}, @json($unlockedAt ?? ""))'>
+                                <img src="{{ asset('storage/' . $achievement->icon) }}" alt="{{ $achievement->name }}">
+                                <p style="margin: 10px 0 0; font-weight: 800; color:#0A2342;">{{ $achievement->name }}</p>
+                            </button>
+                        @endforeach
+                    </div>
+
+                    @if ($hasMoreAchievements)
+                        <div style="margin-top: 18px; text-align:center;">
+                            <button type="button" id="achievementToggleBtn" class="sd-button" style="border:0; cursor:pointer; box-shadow:none;" onclick="toggleAchievements()">
+                                Lihat Semua Pencapaian
+                            </button>
+                        </div>
+                    @endif
+                </section>
+            </div>
+
+            <aside class="sd-card sd-card-dark sd-section">
+                <p class="sd-eyebrow" style="color: #B7CCE6;">Papan Skor</p>
+                <h2 class="sd-title" style="font-size: 30px;">Leaderboard Mingguan</h2>
+                <p class="sd-dark-muted" style="margin-top: 8px;">Peringkat tampil setelah mahasiswa memperoleh poin mingguan dari mission.</p>
+
+                <div class="sd-leaderboard">
+                    @forelse ($leaderboard as $index => $entry)
+                        @php
+                            $isCurrentUser = (int) $entry->user_id === (int) $user->id;
+                            $entryPhoto = $entry->profile_photo ?: 'profile_photos/default-3d.svg';
+                        @endphp
+                        <div class="sd-rank-row {{ $isCurrentUser ? 'is-current' : '' }}">
+                            <strong>{{ $index + 1 }}</strong>
+                            <img src="{{ asset('storage/' . $entryPhoto) }}" alt="Foto {{ $entry->name }}">
+                            <div style="min-width:0;">
+                                <p style="margin:0; font-weight:850; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{ $entry->name }}</p>
+                                <small style="opacity:.76;">{{ $isCurrentUser ? 'Anda' : 'Mahasiswa' }}</small>
+                            </div>
+                            <strong>{{ number_format($entry->weekly_score) }} poin</strong>
+                        </div>
+                    @empty
+                        <div class="sd-soft-box" style="background:rgba(255,255,255,.1); border-color:rgba(255,255,255,.12); color:#DCE7F3; text-align:center;">
+                            Belum ada skor mingguan.
+                        </div>
+                    @endforelse
+                </div>
+            </aside>
+        </div>
+    </main>
+
+    <div id="achievementModal" class="sd-modal" onclick="closeAchievement(event)">
+        <div class="sd-card sd-section" style="max-width: 420px; width: 100%; position: relative;" onclick="event.stopPropagation()">
+            <button type="button" onclick="closeAchievement()"
+                style="position:absolute; right:16px; top:16px; width:38px; height:38px; border:0; border-radius:999px; background:#DCE7F3; color:#1D5FD6; font-size:24px; cursor:pointer;">&times;</button>
+            <div style="text-align:center; padding-top: 10px;">
+                <img id="modalIcon" src="" alt="Ikon pencapaian" style="width:86px; height:86px; object-fit:contain; margin:0 auto;">
+                <h3 id="modalName" style="margin:16px 0 8px; font-size:26px; font-weight:900;"></h3>
+                <p id="modalDescription" style="margin:0; color:#6A7C93; line-height:1.6;"></p>
+                <div id="modalStatus" style="display:inline-flex; margin-top:18px; padding:10px 14px; border-radius:999px; background:#DCE7F3; color:#1D5FD6; font-weight:800;"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let achievementsExpanded = false;
+
+        function showAchievement(icon, name, description, isUnlocked, unlockedAt) {
+            document.getElementById('modalIcon').src = icon;
+            document.getElementById('modalName').innerText = name;
+            document.getElementById('modalDescription').innerText = description;
+            document.getElementById('modalStatus').innerText = isUnlocked ? `Dibuka pada ${unlockedAt}` : 'Belum terbuka';
+            document.getElementById('achievementModal').classList.add('is-open');
+        }
+
+        function closeAchievement(event) {
+            if (event && event.target.id !== 'achievementModal') return;
+            document.getElementById('achievementModal').classList.remove('is-open');
+        }
+
+        function toggleAchievements() {
+            achievementsExpanded = !achievementsExpanded;
+            document.querySelectorAll('.extra-achievement').forEach((item) => {
+                item.classList.toggle('hidden', !achievementsExpanded);
             });
-        });
+
+            const button = document.getElementById('achievementToggleBtn');
+            if (button) {
+                button.innerText = achievementsExpanded ? 'Sembunyikan Pencapaian' : 'Lihat Semua Pencapaian';
+            }
+        }
     </script>
 @endsection

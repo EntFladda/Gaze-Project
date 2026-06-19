@@ -21,6 +21,7 @@ class Question extends Model
         'question_text',
         'help_text',
         'explanation_text',
+        'explanation_image',
         'question_image',
         'score',
         'exp',
@@ -34,5 +35,20 @@ class Question extends Model
     public function answers()
     {
         return $this->hasMany(Answer::class)->orderBy('id');
+    }
+
+    public function blocks()
+    {
+        return $this->hasMany(QuestionBlock::class)->orderBy('sort_order')->orderBy('id');
+    }
+
+    public function explanationImages()
+    {
+        return $this->hasMany(QuestionExplanationImage::class)->orderBy('sort_order')->orderBy('id');
+    }
+
+    public function explanationBlocks()
+    {
+        return $this->hasMany(QuestionExplanationBlock::class)->orderBy('sort_order')->orderBy('id');
     }
 }

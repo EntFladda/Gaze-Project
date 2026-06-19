@@ -17,7 +17,6 @@ class MissionController extends Controller
         $student->loadMissing('ranks');
 
         $rank = $student->current_rank?->name ?? 'Unranked';
-
         $sections = Section::with(['challenges' => function ($query) {
             $query->withCount('questions')->orderBy('id');
         }])->orderBy('order')->get();
@@ -37,8 +36,18 @@ class MissionController extends Controller
 
             $previousChallengeCompleted = $section->is_unlocked;
             $allChallengesCompleted = true;
+            $playableChallenges = 0;
 
-            $section->challenges->transform(function ($challenge) use (&$previousChallengeCompleted, &$allChallengesCompleted, $completedChallengeIds) {
+            $section->challenges->transform(function ($challenge) use (&$previousChallengeCompleted, &$allChallengesCompleted, &$playableChallenges, $completedChallengeIds) {
+                $challenge->has_questions = $challenge->questions_count > 0;
+
+                if (! $challenge->has_questions) {
+                    $challenge->is_completed = false;
+                    $challenge->is_unlocked = false;
+                    return $challenge;
+                }
+
+                $playableChallenges++;
                 $challenge->is_completed = in_array($challenge->id, $completedChallengeIds, true);
                 $challenge->is_unlocked = $previousChallengeCompleted;
 
@@ -51,7 +60,7 @@ class MissionController extends Controller
                 return $challenge;
             });
 
-            $section->is_completed = $allChallengesCompleted && $section->challenges->isNotEmpty();
+            $section->is_completed = $playableChallenges === 0 || $allChallengesCompleted;
             $previousSectionCompleted = $section->is_completed;
 
             return $section;
@@ -66,6 +75,12 @@ class MissionController extends Controller
     {
         $user = auth()->user();
         $challenge = Challenge::withCount('questions')->findOrFail($id);
+
+        if ($challenge->questions_count < 1) {
+            return response()->json([
+                'message' => 'Mission ini belum punya soal.',
+            ], 422);
+        }
 
         if (! $this->isChallengeUnlockedForUser($user->id, $challenge)) {
             return response()->json([
@@ -92,6 +107,7 @@ class MissionController extends Controller
         return response()->json([
             'id' => $challenge->id,
             'title' => $challenge->title,
+            'competency' => $challenge->ct_competency,
             'question_count' => $challenge->questions_count,
             'exp' => $challenge->total_exp,
             'score' => $challenge->total_score,
@@ -112,12 +128,16 @@ class MissionController extends Controller
         $challengeId = $request->input('challenge_id');
 
         if (! $student || ! $challengeId) {
-            return response()->json(['message' => 'Invalid request'], 400);
+            return response()->json(['message' => 'Mission belum dipilih dengan benar.'], 400);
         }
 
-        $challenge = Challenge::find($challengeId);
+        $challenge = Challenge::withCount('questions')->find($challengeId);
         if (! $challenge) {
-            return response()->json(['message' => 'Challenge not found'], 404);
+            return response()->json(['message' => 'Mission tidak ditemukan.'], 404);
+        }
+
+        if ($challenge->questions_count < 1) {
+            return response()->json(['message' => 'Mission ini belum punya soal.'], 422);
         }
 
         if (! $this->isChallengeUnlockedForUser($user->id, $challenge)) {
@@ -142,33 +162,25 @@ class MissionController extends Controller
         $student->save();
 
         return response()->json([
-            'message' => 'Challenge and section updated',
+            'message' => 'Mission siap dimulai.',
             'streak' => $student->streak,
-        ]);
-    }
-
-    public function checkLives()
-    {
-        $user = auth()->user();
-
-        return response()->json([
-            'lives' => $user->student->lives,
-            'next_life_at' => $user->student->next_life_at,
         ]);
     }
 
     protected function isChallengeUnlockedForUser(int $userId, Challenge $challenge): bool
     {
+        $completedChallengeIds = $this->completedChallengeIdsForUser($userId);
         $section = Section::with(['challenges' => function ($query) {
-            $query->orderBy('id');
+            $query->withCount('questions')->orderBy('id');
         }])->findOrFail($challenge->section_id);
 
-        if (! $this->isSectionUnlockedForUser($userId, $section->id)) {
+        if (! $this->isSectionUnlockedForUser($userId, $section->id, $completedChallengeIds)) {
             return false;
         }
 
         $previousChallenge = $section->challenges
             ->where('id', '<', $challenge->id)
+            ->where('questions_count', '>', 0)
             ->sortByDesc('id')
             ->first();
 
@@ -176,17 +188,15 @@ class MissionController extends Controller
             return true;
         }
 
-        return ChallengeResult::where('user_id', $userId)
-            ->where('challenge_id', $previousChallenge->id)
-            ->whereNotNull('ended_at')
-            ->exists();
+        return in_array($previousChallenge->id, $completedChallengeIds, true);
     }
 
-    protected function isSectionUnlockedForUser(int $userId, int $sectionId): bool
+    protected function isSectionUnlockedForUser(int $userId, int $sectionId, ?array $completedChallengeIds = null): bool
     {
+        $completedChallengeIds ??= $this->completedChallengeIdsForUser($userId);
         $section = Section::orderBy('order')->findOrFail($sectionId);
         $previousSection = Section::with(['challenges' => function ($query) {
-            $query->orderBy('id');
+            $query->withCount('questions')->orderBy('id');
         }])->where('order', '<', $section->order)
             ->orderByDesc('order')
             ->first();
@@ -195,21 +205,24 @@ class MissionController extends Controller
             return true;
         }
 
-        if ($previousSection->challenges->isEmpty()) {
+        $playableChallenges = $previousSection->challenges->where('questions_count', '>', 0);
+
+        if ($playableChallenges->isEmpty()) {
             return true;
         }
 
-        foreach ($previousSection->challenges as $challenge) {
-            $completed = ChallengeResult::where('user_id', $userId)
-                ->where('challenge_id', $challenge->id)
-                ->whereNotNull('ended_at')
-                ->exists();
+        return $playableChallenges->every(
+            fn($challenge) => in_array($challenge->id, $completedChallengeIds, true)
+        );
+    }
 
-            if (! $completed) {
-                return false;
-            }
-        }
-
-        return true;
+    protected function completedChallengeIdsForUser(int $userId): array
+    {
+        return ChallengeResult::where('user_id', $userId)
+            ->whereNotNull('ended_at')
+            ->pluck('challenge_id')
+            ->unique()
+            ->values()
+            ->all();
     }
 }

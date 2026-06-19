@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\User;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ChallengeController;
 use App\Http\Controllers\LecturerStudentController;
@@ -22,7 +23,7 @@ use Illuminate\Support\Facades\Route;
 |--------------------------------------------------------------------------
 */
 Route::get('/', function () {
-    if (auth()->check()) {
+    if (Auth::check()) {
         return redirect()->route('redirect.after.login');
     }
     return view('auth.login');
@@ -55,6 +56,8 @@ Route::middleware('auth')->group(function () {
 |--------------------------------------------------------------------------
 */
 Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
+    Route::post('students/import', [AdminStudentController::class, 'import'])->name('admin.students.import');
+
     Route::resource('users', UserController::class)->names([
         'index'   => 'admin.users.index',
         'create'  => 'admin.users.create',
@@ -87,9 +90,15 @@ Route::middleware(['auth', 'role:student'])->prefix('student')->group(function (
 
     // Dismiss tutorial
     Route::post('/dismiss-tutorial', function () {
+        /** @var User|null $user */
         $user = Auth::user();
+        if (! $user instanceof User) {
+            abort(403);
+        }
+
         $user->tutorial_viewed = true;
         $user->save();
+
         return redirect()->route('student.tutorial.index');
     })->name('student.dismiss.tutorial');
 
@@ -97,6 +106,7 @@ Route::middleware(['auth', 'role:student'])->prefix('student')->group(function (
     Route::resource('profile', StudentProfileController::class)->names([
         'index' => 'student.profile.index',
     ])->only(['index']);
+    Route::get('/profile/detail', [StudentProfileController::class, 'detail'])->name('student.profile.detail');
     Route::get('/profile/edit', [StudentProfileController::class, 'edit'])->name('student.profile.edit');
     Route::put('/profile/update', [StudentProfileController::class, 'update'])->name('student.profile.update');
 
@@ -127,10 +137,6 @@ Route::middleware(['auth', 'role:student'])->prefix('student')->group(function (
     Route::post('/question/help', [StudentQuestionController::class, 'requestHelp'])->name('student.question.help');
     Route::post('/check-essay', [StudentQuestionController::class, 'checkEssayAnswer'])->name('student.check.essay');
 
-    // Lives / nyawa
-    Route::get('/check-lives', [StudentQuestionController::class, 'checkLives'])->name('student.check.lives');
-    Route::post('/update-lives', [StudentQuestionController::class, 'updateLives'])->name('student.update.lives');
-
     // Ringkasan challenge
     Route::get('/challenge/{challenge_id}/summary/{attempt_number}', [StudentQuestionController::class, 'challengeSummary'])->name('student.challenge.summary');
 
@@ -139,7 +145,14 @@ Route::middleware(['auth', 'role:student'])->prefix('student')->group(function (
 
     // Rank up page
     Route::get('/rank-up/{challenge_id}/{attempt_number}', function ($challenge_id, $attempt_number) {
-        $student = auth()->user()->student;
+        /** @var User|null $user */
+        $user = Auth::user();
+        if (! $user instanceof User) {
+            abort(403);
+        }
+
+        $student = $user->student;
+
         return view('student.rank_up', compact('student', 'challenge_id', 'attempt_number'));
     })->name('student.rank.up');
 });
@@ -211,11 +224,18 @@ require __DIR__ . '/auth.php';
 |--------------------------------------------------------------------------
 */
 Route::middleware('auth')->get('/redirect-after-login', function () {
-    $user = auth()->user();
+    /** @var User|null $user */
+    $user = Auth::user();
+    if (! $user instanceof User) {
+        abort(403);
+    }
 
     if ($user->hasRole('admin')) {
         return redirect()->route('admin.users.index');
     } elseif ($user->hasRole('student')) {
+        if (!$user->tutorial_viewed) {
+            return redirect()->route('student.profile.index')->with('show_tutorial_popup', true);
+        }
         return redirect()->route('student.profile.index');
     } elseif ($user->hasRole('lecturer')) {
         return redirect()->route('lecturer.dashboard');

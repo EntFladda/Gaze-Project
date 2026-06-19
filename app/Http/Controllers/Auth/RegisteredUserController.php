@@ -37,17 +37,18 @@ class RegisteredUserController extends Controller
             'nim' => 'required|string|unique:students',
             'address' => 'nullable|string|max:255',
             'birth_date' => 'nullable|date',
-            'religion' => 'nullable|string|in:Islam,Kristen,Katolik,Hindu,Budha,Konghucu',
-            'gender' => 'nullable|string|in:L,P',
+            'religion' => 'nullable|string|in:Islam,Protestan,Katolik,Hindu,Buddha,Konghucu,Lainnya',
+            'gender' => 'nullable|string|in:Laki-laki,Perempuan',
             'phone_number' => 'nullable|string|max:15',
-            'prodi' => 'nullable|string|in:Teknik Informatika,Sistem Informasi',
+            'prodi' => 'nullable|string|in:Teknik Informatika,Sistem Informasi Bisnis',
             'semester' => 'nullable|string|in:1,2,3,4,5,6,7,8',
-            'class' => 'nullable|string|in:A,B,C,D,E,F,G,H,I',
+            'class' => 'nullable|string|max:50',
         ]);
 
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
+            'profile_photo' => 'profile_photos/default-3d.svg',
             'password' => Hash::make($request->password),
         ]);
 
@@ -62,6 +63,10 @@ class RegisteredUserController extends Controller
             'prodi' => $request->input('prodi'),
             'semester' => $request->input('semester'),
             'class' => $request->input('class'),
+            'streak' => 0,
+            'exp' => 0,
+            'weekly_score' => 0,
+            'total_score' => 0,
         ]);
 
         $user->assignRole('student');
@@ -70,6 +75,6 @@ class RegisteredUserController extends Controller
 
         Auth::login($user);
 
-        return redirect(route('dashboard', absolute: false));
+        return redirect(route('redirect.after.login', absolute: false));
     }
 }

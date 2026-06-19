@@ -2,21 +2,41 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Models\Achievement;
 use App\Models\Challenge;
 use App\Models\ChallengeResult;
 use App\Models\Section;
 use App\Models\Student;
-use Illuminate\Support\Facades\Storage;
+use App\Models\User;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class StudentProfileController extends Controller
 {
+    protected const PRESET_AVATARS = [
+        'profile_photos/default-3d.svg',
+        'profile_photos/avatar-ai-core.svg',
+        'profile_photos/avatar-terminal-nova.svg',
+        'profile_photos/avatar-data-wave.svg',
+        'profile_photos/avatar-cloud-link.svg',
+        'profile_photos/avatar-code-spark.svg',
+        'profile_photos/avatar-cyber-orbit.svg',
+        'profile_photos/avatar-neon-pixel.svg',
+        'profile_photos/avatar-server-guard.svg',
+        'profile_photos/avatar-network-pulse.svg',
+        'profile_photos/avatar-quantum-node.svg',
+    ];
+
     public function index()
     {
-        $user = auth()->user();
+        /** @var User|null $user */
+        $user = Auth::user();
+        if (! $user instanceof User) {
+            abort(403);
+        }
+
         $student = Student::with(['user', 'ranks', 'currentSection', 'achievements'])
             ->where('user_id', $user->id)
             ->firstOrFail();
@@ -27,12 +47,14 @@ class StudentProfileController extends Controller
             : null;
         $allAchievements = Achievement::all();
         $unlockedAchievementIds = $student->achievements->pluck('id')->toArray();
+        $activeChallengeIds = Challenge::has('questions')->pluck('id');
         $completedChallengeIds = ChallengeResult::where('user_id', $user->id)
             ->whereNotNull('ended_at')
+            ->whereIn('challenge_id', $activeChallengeIds)
             ->distinct()
             ->pluck('challenge_id');
         $completedChallengesCount = $completedChallengeIds->count();
-        $totalChallengesCount = Challenge::count();
+        $totalChallengesCount = $activeChallengeIds->count();
         $orderedSections = Section::with('challenges')->orderBy('order')->get();
         $completedSectionsCount = $orderedSections->filter(function ($section) use ($completedChallengeIds) {
             return $section->challenges->isNotEmpty()
@@ -63,12 +85,16 @@ class StudentProfileController extends Controller
         }
 
         $leaderboard = Student::join('users', 'students.user_id', '=', 'users.id')
+            ->where('students.weekly_score', '>', 0)
             ->orderByDesc('students.weekly_score')
-            ->select('students.weekly_score', 'users.name', 'users.profile_photo')
+            ->orderBy('users.name')
+            ->select('students.user_id', 'students.weekly_score', 'users.name', 'users.profile_photo')
             ->limit(10)
             ->get();
 
-        $weeklyRank = Student::where('weekly_score', '>', (int) $student->weekly_score)->count() + 1;
+        $weeklyRank = (int) $student->weekly_score > 0
+            ? Student::where('weekly_score', '>', (int) $student->weekly_score)->count() + 1
+            : null;
 
         $currentRank = $student->current_rank;
         $minExp = $currentRank?->min_exp ?? 0;
@@ -93,27 +119,45 @@ class StudentProfileController extends Controller
         ));
     }
 
-    /**
-     * Menampilkan Halaman Edit Profil Mahasiswa.
-     */
-    public function edit()
+    public function detail()
     {
+        /** @var User|null $user */
         $user = Auth::user();
+        if (! $user instanceof User) {
+            abort(403);
+        }
+
         $student = $user->student;
         $this->ensureProfilePhotoPubliclyAvailable($user);
 
-        return view('student.profile.edit', compact('user', 'student'));
+        return view('student.profile.detail', compact('user', 'student'));
     }
 
-    /**
-     * Update Profil oleh Mahasiswa.
-     */
+    public function edit()
+    {
+        /** @var User|null $user */
+        $user = Auth::user();
+        if (! $user instanceof User) {
+            abort(403);
+        }
+
+        $student = $user->student;
+        $this->ensureProfilePhotoPubliclyAvailable($user);
+        $presetAvatars = self::PRESET_AVATARS;
+
+        return view('student.profile.edit', compact('user', 'student', 'presetAvatars'));
+    }
+
     public function update(Request $request)
     {
-        $user = auth()->user();
+        /** @var User|null $user */
+        $user = Auth::user();
+        if (! $user instanceof User) {
+            abort(403);
+        }
+
         $student = $user->student;
 
-        // Validasi Data
         $validatedData = $request->validate([
             'address' => 'nullable|string|max:255',
             'birth_date' => 'nullable|date',
@@ -122,18 +166,18 @@ class StudentProfileController extends Controller
             'phone_number' => 'nullable|string|max:20',
             'prodi' => 'nullable|string|in:Sistem Informasi Bisnis,Teknik Informatika',
             'semester' => 'nullable|integer|min:1|max:8',
-            'profile_photo' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048', // Maks 2MB
+            'profile_photo' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
+            'avatar_choice' => 'nullable|string|in:' . implode(',', self::PRESET_AVATARS),
         ]);
 
-        // ✅ **Jika Ada Upload Foto Baru**
-        if ($request->hasFile('profile_photo')) {
-            if ($user->profile_photo && $user->profile_photo !== 'profile_photos/default.webp') {
-                Storage::disk('public')->delete($user->profile_photo);
-                $publicPhotoPath = public_path('storage/' . $user->profile_photo);
-                if (file_exists($publicPhotoPath)) {
-                    @unlink($publicPhotoPath);
-                }
-            }
+        $studentData = collect($validatedData)->except(['profile_photo', 'avatar_choice'])->all();
+        $selectedAvatar = $validatedData['avatar_choice'] ?? null;
+
+        if ($request->input('delete_photo') === '1') {
+            $this->deleteCustomProfilePhoto($user->profile_photo);
+            $user->profile_photo = 'profile_photos/default-3d.svg';
+        } elseif ($request->hasFile('profile_photo')) {
+            $this->deleteCustomProfilePhoto($user->profile_photo);
 
             $file = $request->file('profile_photo');
             $filename = Str::random(40) . '.' . $file->getClientOriginalExtension();
@@ -145,30 +189,41 @@ class StudentProfileController extends Controller
             if (! is_dir($publicDirectory)) {
                 mkdir($publicDirectory, 0777, true);
             }
+
             copy(storage_path('app/public/' . $path), $publicDirectory . DIRECTORY_SEPARATOR . $filename);
-
             $user->profile_photo = $path;
-        }
-
-        // ✅ **Jika User Menghapus Foto**
-        if ($request->input('delete_photo') == "1") {
-            if ($user->profile_photo !== 'profile_photos/default.webp') {
-                Storage::disk('public')->delete($user->profile_photo);
+        } elseif ($selectedAvatar) {
+            if ($user->profile_photo !== $selectedAvatar) {
+                $this->deleteCustomProfilePhoto($user->profile_photo);
+                $user->profile_photo = $selectedAvatar;
             }
-            $user->profile_photo = 'profile_photos/default.webp';
         }
 
         $user->save();
-        $student->update($validatedData);
+        $student->update($studentData);
 
-        return redirect()->route('student.profile.index')->with('success', 'Profile updated successfully!');
+        return redirect()->route('student.profile.index')->with('success', 'Profil berhasil diperbarui.');
+    }
+
+    protected function deleteCustomProfilePhoto(?string $photoPath): void
+    {
+        if (blank($photoPath) || in_array($photoPath, self::PRESET_AVATARS, true)) {
+            return;
+        }
+
+        Storage::disk('public')->delete($photoPath);
+
+        $publicPhotoPath = public_path('storage/' . $photoPath);
+        if (file_exists($publicPhotoPath)) {
+            @unlink($publicPhotoPath);
+        }
     }
 
     protected function ensureProfilePhotoPubliclyAvailable($user): void
     {
         $photoPath = $user->profile_photo;
 
-        if (blank($photoPath) || $photoPath === 'profile_photos/default.webp') {
+        if (blank($photoPath) || in_array($photoPath, self::PRESET_AVATARS, true)) {
             return;
         }
 

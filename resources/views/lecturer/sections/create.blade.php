@@ -3,8 +3,8 @@
 @section('content')
     <div class="section-form-page">
         <section class="section-form-hero">
-            <p class="section-form-kicker">Sections</p>
-            <h1 class="section-form-title">Buat section pembelajaran</h1>
+            <p class="section-form-kicker">Bagian Belajar</p>
+            <h1 class="section-form-title">Tambah bagian belajar</h1>
         </section>
 
         @if ($errors->any())
@@ -23,13 +23,13 @@
 
             <div class="section-form-grid">
                 <div>
-                    <label for="order" class="section-form-label">Urutan Section</label>
+                    <label for="order" class="section-form-label">Urutan</label>
                     <input type="number" name="order" id="order" value="{{ old('order') }}" class="section-form-input" required>
                     <p class="section-form-hint">Gunakan angka unik.</p>
                 </div>
 
                 <div>
-                    <label for="name" class="section-form-label">Nama Section</label>
+                    <label for="name" class="section-form-label">Nama Bagian</label>
                     <input type="text" name="name" id="name" value="{{ old('name') }}" class="section-form-input" required>
                     <p class="section-form-hint">Contoh: Dasar Logika.</p>
                 </div>
@@ -37,7 +37,7 @@
 
             <div class="section-form-actions">
                 <a href="{{ route('lecturer.sections.index') }}" class="section-form-btn neutral">Kembali</a>
-                <button type="submit" class="section-form-btn primary">Simpan Section</button>
+                <button type="submit" class="section-form-btn primary">Simpan</button>
             </div>
         </form>
     </div>
@@ -52,8 +52,8 @@
             margin-bottom: 24px;
             padding: 28px;
             border-radius: 30px;
-            border: 1px solid rgba(255, 228, 236, 0.14);
-            background: rgba(74, 19, 39, 0.78);
+            border: 1px solid rgba(183, 204, 230, 0.14);
+            background: rgba(11, 47, 107, 0.78);
             box-shadow: 0 20px 50px rgba(0, 0, 0, 0.22);
         }
 
@@ -62,7 +62,7 @@
             font-size: 12px;
             letter-spacing: 0.34em;
             text-transform: uppercase;
-            color: rgba(255, 228, 236, 0.75);
+            color: rgba(183, 204, 230, 0.75);
         }
 
         .section-form-title {
@@ -74,7 +74,7 @@
 
         .section-form-copy {
             margin: 14px 0 0;
-            color: rgba(255, 240, 244, 0.76);
+            color: rgba(220, 231, 243, 0.76);
             line-height: 1.8;
             max-width: 760px;
         }
@@ -105,7 +105,7 @@
         .section-form-label {
             display: block;
             margin-bottom: 10px;
-            color: #334155;
+            color: #263E5C;
             font-weight: 700;
         }
 
@@ -113,9 +113,9 @@
             width: 100%;
             padding: 14px 16px;
             border-radius: 16px;
-            border: 1px solid #f0b6c9;
+            border: 1px solid #9CB8D8;
             box-sizing: border-box;
-            color: #1f2937;
+            color: #09254A;
         }
 
         .section-form-hint {
@@ -145,12 +145,12 @@
         }
 
         .section-form-btn.neutral {
-            background: #64748b;
+            background: #6A7C93;
             color: #fff;
         }
 
         .section-form-btn.primary {
-            background: linear-gradient(90deg, #c0265f, #ec4899);
+            background: linear-gradient(90deg, #1D5FD6, #2BA7D8);
             color: #fff;
         }
 

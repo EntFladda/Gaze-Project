@@ -1,294 +1,218 @@
 @extends('lecturer.layouts.app')
 
 @section('content')
-    <div class="lecturer-dashboard">
-        <section class="lecturer-hero">
-            <p class="lecturer-hero-kicker">Dashboard</p>
-            <h1 class="lecturer-hero-title">Ringkasan kelas</h1>
+    @php
+        $activeRate = $totalStudents > 0 ? round(($activeStudents / $totalStudents) * 100) : 0;
+        $inactiveStudents = max($totalStudents - $activeStudents, 0);
+        $maxRankCount = max((int) ($rankStats->max('students_count') ?? 0), 1);
+        $maxStreakCount = max((int) ($streakStats->max('total') ?? 0), 1);
+    @endphp
+
+    <div class="lecturer-dashboard-simple">
+        <section class="dash-hero-simple">
+            <div>
+                <p class="dash-kicker">Dashboard Dosen</p>
+                <h1>Ringkasan Kelas</h1>
+                <span>Pantau progres mahasiswa dan aktivitas mission secara cepat.</span>
+            </div>
+            <a href="{{ route('lecturer.students.index') }}" class="dash-primary-link">Lihat Mahasiswa</a>
         </section>
 
-        <section class="lecturer-grid">
-            <div class="lecturer-panel bg-white">
-                <h2 class="lecturer-panel-title rank">Rank Distribution</h2>
-                <div class="lecturer-bar-wrap">
-                    <canvas id="rankChart"></canvas>
-                </div>
-            </div>
+        <section class="dash-stat-grid" aria-label="Ringkasan kelas">
+            <article class="dash-stat-card">
+                <p>Total Mahasiswa</p>
+                <strong>{{ number_format($totalStudents) }}</strong>
+            </article>
+            <article class="dash-stat-card accent">
+                <p>Mahasiswa Aktif</p>
+                <strong>{{ number_format($activeStudents) }}</strong>
+                <div class="dash-mini-progress"><span style="width: {{ $activeRate }}%"></span></div>
+            </article>
+            <article class="dash-stat-card muted">
+                <p>Belum Aktif</p>
+                <strong>{{ number_format($inactiveStudents) }}</strong>
+            </article>
+        </section>
 
-            <div class="lecturer-panel bg-white">
-                <h2 class="lecturer-panel-title streak">Streak Distribution</h2>
-                <div class="lecturer-chart-wrap">
-                    <canvas id="streakChart" class="lecturer-streak-canvas"></canvas>
+        <section class="dash-main-grid">
+            <article class="dash-panel top-students-panel">
+                <div class="dash-panel-head">
+                    <div>
+                        <p>Performa</p>
+                        <h2>Mahasiswa Teratas</h2>
+                    </div>
+                    <span>{{ $activeRate }}% aktif</span>
                 </div>
-            </div>
 
-            <div class="lecturer-panel bg-white lecturer-panel-wide">
-                <h2 class="lecturer-panel-title top">Top 5 Students</h2>
-                <div class="overflow-x-auto">
-                    <table class="min-w-full divide-y divide-gray-200 text-left text-sm text-gray-800">
-                        <thead class="bg-green-500 text-xs font-semibold uppercase tracking-wider text-white">
-                            <tr>
-                                <th class="px-4 py-2">Name</th>
-                                <th class="px-4 py-2">Weekly Score</th>
-                                <th class="px-4 py-2">Rank</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-gray-100 bg-white">
-                            @foreach ($topStudents as $student)
+                @if ($hasStudentProgress && $topStudents->isNotEmpty())
+                    <div class="dash-table-wrap">
+                        <table class="dash-table">
+                            <thead>
                                 <tr>
-                                    <td class="px-4 py-2">{{ $student->user->name }}</td>
-                                    <td class="px-4 py-2">{{ $student->weekly_score }}</td>
-                                    <td class="px-4 py-2">{{ $student->ranks->last()?->name ?? '-' }}</td>
+                                    <th>Nama</th>
+                                    <th>Skor</th>
+                                    <th>Rank</th>
                                 </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody>
+                                @foreach ($topStudents as $student)
+                                    <tr>
+                                        <td>{{ $student->user->name }}</td>
+                                        <td>{{ number_format($student->weekly_score) }}</td>
+                                        <td><span>{{ $student->dashboard_rank_name ?? '-' }}</span></td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                @else
+                    <div class="dash-empty-state">
+                        <strong>Belum ada aktivitas</strong>
+                        <span>Data akan muncul setelah mahasiswa mulai mengerjakan mission.</span>
+                    </div>
+                @endif
+            </article>
+
+            <article class="dash-panel">
+                <div class="dash-panel-head">
+                    <div>
+                        <p>Rank</p>
+                        <h2>Sebaran Mahasiswa</h2>
+                    </div>
                 </div>
-            </div>
+
+                @if ($hasStudentProgress && $rankStats->isNotEmpty())
+                    <div class="dash-list-bars">
+                        @foreach ($rankStats as $rank)
+                            @php $width = round(((int) $rank->students_count / $maxRankCount) * 100); @endphp
+                            <div class="dash-bar-item">
+                                <div class="dash-bar-meta">
+                                    <span>{{ $rank->name }}</span>
+                                    <strong>{{ $rank->students_count }}</strong>
+                                </div>
+                                <div class="dash-bar-track"><span style="width: {{ $width }}%"></span></div>
+                            </div>
+                        @endforeach
+                    </div>
+                @else
+                    <div class="dash-empty-state small">
+                        <strong>Rank belum tersedia</strong>
+                        <span>Belum ada EXP mahasiswa yang tercatat.</span>
+                    </div>
+                @endif
+            </article>
+
+            <article class="dash-panel">
+                <div class="dash-panel-head">
+                    <div>
+                        <p>Streak</p>
+                        <h2>Kebiasaan Belajar</h2>
+                    </div>
+                </div>
+
+                @if ($hasStudentProgress && $streakStats->isNotEmpty())
+                    <div class="dash-streak-list">
+                        @foreach ($streakStats as $streak)
+                            @php $width = round(((int) $streak->total / $maxStreakCount) * 100); @endphp
+                            <div class="dash-streak-item">
+                                <span>{{ $streak->streak }} hari</span>
+                                <div class="dash-bar-track"><span style="width: {{ $width }}%"></span></div>
+                                <strong>{{ $streak->total }}</strong>
+                            </div>
+                        @endforeach
+                    </div>
+                @else
+                    <div class="dash-empty-state small warm">
+                        <strong>Streak masih kosong</strong>
+                        <span>Aktivitas belajar belum tercatat.</span>
+                    </div>
+                @endif
+            </article>
         </section>
     </div>
 
     <style>
-        .lecturer-dashboard {
-            max-width: 1200px;
-            margin: 0 auto;
+        .lecturer-dashboard-simple {
+            --dash-ink:#0A2342;
+            --dash-muted:#6A7C93;
+            --dash-card:#F4F8FC;
+            --dash-line:#B7CCE6;
+            --dash-blue:#1D5FD6;
+            --dash-blue-dark:#0A2342;
+            max-width:1180px;
+            margin:0 auto;
+            color:var(--dash-ink);
         }
 
-        .lecturer-hero {
-            margin-bottom: 28px;
-            padding: 28px;
-            border-radius: 30px;
-            border: 1px solid rgba(255, 228, 236, 0.14);
-            background: rgba(74, 19, 39, 0.78);
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.22);
+        .dash-hero-simple {
+            display:flex;
+            align-items:center;
+            justify-content:space-between;
+            gap:18px;
+            padding:22px 24px;
+            border:1px solid rgba(191,219,254,.14);
+            border-radius:26px;
+            background:linear-gradient(135deg,#0A2342,#0F2F57);
+            box-shadow:0 16px 34px rgba(15,23,42,.18);
+            margin-bottom:18px;
         }
 
-        .lecturer-hero-kicker {
-            margin: 0;
-            font-size: 12px;
-            text-transform: uppercase;
-            letter-spacing: 0.38em;
-            color: rgba(255, 228, 236, 0.75);
+        .dash-kicker,
+        .dash-panel-head p,
+        .dash-stat-card p {
+            margin:0;
+            font-size:11px;
+            font-weight:900;
+            letter-spacing:.18em;
+            text-transform:uppercase;
         }
 
-        .lecturer-hero-title {
-            margin: 14px 0 0;
-            font-size: 46px;
-            line-height: 1.15;
-            font-weight: 700;
-            color: #fff;
-        }
+        .dash-kicker { color:rgba(191,219,254,.76); }
+        .dash-hero-simple h1 { margin:8px 0 0; color:#fff; font-size:34px; line-height:1.1; font-weight:900; }
+        .dash-hero-simple span { display:block; margin-top:8px; color:rgba(219,234,254,.75); line-height:1.55; }
+        .dash-primary-link { display:inline-flex; align-items:center; justify-content:center; padding:12px 16px; border-radius:15px; background:#fff; color:var(--dash-blue-dark); font-size:14px; font-weight:900; text-decoration:none; white-space:nowrap; }
 
-        .lecturer-hero-copy {
-            max-width: 760px;
-            margin: 16px 0 0;
-            font-size: 16px;
-            line-height: 1.8;
-            color: rgba(255, 240, 244, 0.76);
-        }
+        .dash-stat-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:14px; margin-bottom:14px; }
+        .dash-stat-card { min-height:122px; padding:20px; border-radius:22px; background:var(--dash-card); border:1px solid var(--dash-line); box-shadow:0 12px 28px rgba(15,23,42,.08); }
+        .dash-stat-card p { color:var(--dash-muted); }
+        .dash-stat-card strong { display:block; margin-top:12px; color:var(--dash-ink); font-size:36px; line-height:1; font-weight:900; }
+        .dash-stat-card.accent { background:#E8F0F8; }
+        .dash-stat-card.accent p { color:var(--dash-blue); }
+        .dash-stat-card.muted { background:#f8fafc; }
+        .dash-mini-progress { height:9px; margin-top:16px; overflow:hidden; border-radius:999px; background:#DCE7F3; }
+        .dash-mini-progress span { display:block; height:100%; border-radius:999px; background:linear-gradient(90deg,#1D5FD6,#2BA7D8); }
 
-        .lecturer-grid {
-            display: grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: 24px;
-        }
+        .dash-main-grid { display:grid; grid-template-columns:minmax(0,1.35fr) minmax(280px,.8fr); gap:14px; }
+        .dash-panel { padding:20px; border-radius:24px; background:var(--dash-card); border:1px solid var(--dash-line); box-shadow:0 12px 28px rgba(15,23,42,.08); }
+        .top-students-panel { grid-row:span 2; }
+        .dash-panel-head { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; margin-bottom:14px; }
+        .dash-panel-head p { color:var(--dash-blue); }
+        .dash-panel-head h2 { margin:6px 0 0; color:var(--dash-ink); font-size:22px; line-height:1.2; font-weight:900; }
+        .dash-panel-head > span { padding:7px 11px; border-radius:999px; background:#E8F0F8; color:var(--dash-blue); font-size:12px; font-weight:900; }
 
-        .lecturer-panel {
-            padding: 22px;
-            border-radius: 28px;
-        }
+        .dash-table-wrap { overflow-x:auto; border:1px solid #B7CCE6; border-radius:18px; }
+        .dash-table { width:100%; min-width:480px; border-collapse:collapse; }
+        .dash-table th, .dash-table td { padding:13px 14px; text-align:left; border-bottom:1px solid #DCE7F3; }
+        .dash-table th { background:#E8F0F8; color:var(--dash-blue); font-size:11px; font-weight:900; letter-spacing:.12em; text-transform:uppercase; }
+        .dash-table tr:last-child td { border-bottom:0; }
+        .dash-table td { color:#263E5C; font-weight:700; }
+        .dash-table td span { display:inline-flex; padding:6px 10px; border-radius:999px; background:#DCE7F3; color:#15509A; font-size:12px; font-weight:900; }
 
-        .lecturer-panel-wide {
-            grid-column: 1 / -1;
-        }
+        .dash-list-bars, .dash-streak-list { display:flex; flex-direction:column; gap:12px; }
+        .dash-bar-meta, .dash-streak-item { display:flex; align-items:center; gap:10px; justify-content:space-between; color:#263E5C; font-weight:800; }
+        .dash-bar-meta span { max-width:70%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+        .dash-bar-meta strong, .dash-streak-item strong { color:var(--dash-blue); }
+        .dash-bar-track { height:9px; flex:1; min-width:90px; overflow:hidden; border-radius:999px; background:#DCE7F3; }
+        .dash-bar-track span { display:block; height:100%; border-radius:999px; background:linear-gradient(90deg,#1D5FD6,#2BA7D8); }
+        .dash-streak-item > span { width:70px; color:#53657A; font-size:13px; }
 
-        .lecturer-panel-title {
-            margin: 0 0 14px;
-            font-size: 20px;
-            font-weight: 700;
-        }
+        .dash-empty-state { min-height:210px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; padding:20px; border:1px dashed #9CB8D8; border-radius:20px; background:#E8F0F8; text-align:center; color:var(--dash-muted); }
+        .dash-empty-state.small { min-height:150px; }
+        .dash-empty-state strong { color:var(--dash-blue); font-size:18px; }
+        .dash-empty-state.warm { background:#fff7ed; border-color:#fed7aa; }
+        .dash-empty-state.warm strong { color:#d97706; }
 
-        .lecturer-panel-title.rank {
-            color: #b2215b;
-        }
-
-        .lecturer-panel-title.streak {
-            color: #d97706;
-        }
-
-        .lecturer-panel-title.top {
-            color: #be185d;
-        }
-
-        .lecturer-chart-wrap {
-            height: 280px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .lecturer-bar-wrap {
-            height: 360px;
-        }
-
-        .lecturer-streak-canvas {
-            width: 260px !important;
-            height: 260px !important;
-            max-width: 260px;
-            max-height: 260px;
-        }
-
-        @media (max-width: 992px) {
-            .lecturer-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .lecturer-panel-wide {
-                grid-column: auto;
-            }
-        }
-
-        @media (max-width: 768px) {
-            .lecturer-hero {
-                padding: 22px;
-            }
-
-            .lecturer-hero-title {
-                font-size: 34px;
-            }
-        }
+        @media (max-width:1000px) { .dash-main-grid { grid-template-columns:1fr; } .top-students-panel { grid-row:auto; } }
+        @media (max-width:760px) { .dash-hero-simple { flex-direction:column; align-items:stretch; } .dash-primary-link { width:100%; } .dash-stat-grid { grid-template-columns:1fr; } .dash-hero-simple h1 { font-size:29px; } }
     </style>
-@endsection
-
-@section('scripts')
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
-    <script>
-        const rankCtx = document.getElementById('rankChart').getContext('2d');
-        new Chart(rankCtx, {
-            type: 'bar',
-            data: {
-                labels: {!! json_encode($rankStats->pluck('name')->values()) !!},
-                datasets: [{
-                    label: 'Students',
-                    data: {!! json_encode($rankStats->pluck('students_count')->values()) !!},
-                    backgroundColor: '#d9467a',
-                    borderRadius: 10
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        display: false
-                    },
-                    tooltip: {
-                        backgroundColor: '#4a1327',
-                        titleColor: '#ffffff',
-                        bodyColor: '#ffe4ec'
-                    }
-                },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        ticks: {
-                            color: '#64748b',
-                            precision: 0,
-                            font: {
-                                size: 13
-                            }
-                        },
-                        grid: {
-                            color: 'rgba(148, 163, 184, 0.2)'
-                        },
-                        title: {
-                            display: true,
-                            text: 'Number of Students',
-                            color: '#475569',
-                            font: {
-                                weight: '600'
-                            }
-                        }
-                    },
-                    x: {
-                        ticks: {
-                            color: '#475569',
-                            autoSkip: false,
-                            maxRotation: 32,
-                            minRotation: 32,
-                            font: {
-                                size: 12
-                            }
-                        },
-                        grid: {
-                            display: false
-                        },
-                        title: {
-                            display: true,
-                            text: 'Rank',
-                            color: '#475569',
-                            font: {
-                                weight: '600'
-                            }
-                        }
-                    }
-                }
-            }
-        });
-
-        const streakCtx = document.getElementById('streakChart').getContext('2d');
-
-        new Chart(streakCtx, {
-            type: 'pie',
-            data: {
-                labels: {!! json_encode($streakStats->pluck('streak')->values()) !!},
-                datasets: [{
-                    data: {!! json_encode($streakStats->pluck('total')->values()) !!},
-                    backgroundColor: ['#f59e0b', '#f97316', '#fb7185', '#f472b6', '#c0265f'],
-                    borderColor: '#ffffff',
-                    borderWidth: 3
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: true,
-                aspectRatio: 1,
-                plugins: {
-                    legend: {
-                        display: false
-                    },
-                    tooltip: {
-                        backgroundColor: '#4a1327',
-                        titleColor: '#ffffff',
-                        bodyColor: '#ffe4ec',
-                        callbacks: {
-                            label: function(context) {
-                                const label = context.label || '';
-                                const value = context.raw || 0;
-                                return `${label} days: ${value} students`;
-                            }
-                        }
-                    },
-                    datalabels: {
-                        color: '#ffffff',
-                        font: {
-                            weight: 'bold',
-                            size: 12
-                        },
-                        formatter: (value, ctx) => {
-                            if (value <= 0) {
-                                return '';
-                            }
-
-                            const total = ctx.dataset.data.reduce((sum, current) => sum + current, 0);
-                            const percentage = total ? Math.round((value / total) * 100) : 0;
-                            return `${percentage}%`;
-                        }
-                    }
-                }
-            },
-            plugins: [ChartDataLabels]
-        });
-    </script>
 @endsection

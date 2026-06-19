@@ -10,29 +10,29 @@
     <style>
         body {
             background:
-                radial-gradient(circle at top, rgba(244, 114, 182, 0.22), transparent 32%),
-                linear-gradient(135deg, #240812, #4a1327, #66203d);
+                radial-gradient(circle at top, rgba(29, 95, 214, 0.22), transparent 32%),
+                linear-gradient(135deg, #071426, #0A2342, #123A68);
             color: white;
             font-family: 'Poppins', sans-serif;
         }
 
         .glow-box {
-            border: 3px solid #fbbf24;
-            box-shadow: 0px 0px 15px rgba(251, 191, 36, 0.7);
+            border: 3px solid #F2A93B;
+            box-shadow: 0px 0px 15px rgba(242, 169, 59, 0.7);
             animation: pulse 1.5s infinite;
         }
 
         @keyframes pulse {
             0% {
-                box-shadow: 0 0 10px rgba(251, 191, 36, 0.55);
+                box-shadow: 0 0 10px rgba(242, 169, 59, 0.55);
             }
 
             50% {
-                box-shadow: 0 0 25px rgba(251, 191, 36, 0.9);
+                box-shadow: 0 0 25px rgba(242, 169, 59, 0.9);
             }
 
             100% {
-                box-shadow: 0 0 10px rgba(251, 191, 36, 0.55);
+                box-shadow: 0 0 10px rgba(242, 169, 59, 0.55);
             }
         }
 
@@ -54,7 +54,7 @@
 
         .loader {
             border: 4px solid rgba(255, 255, 255, 0.3);
-            border-top: 4px solid #fbbf24;
+            border-top: 4px solid #F2A93B;
             border-radius: 50%;
             width: 32px;
             height: 32px;
@@ -84,7 +84,7 @@
         Your browser does not support the audio element.
     </audio>
 
-    <div class="bg-[#4a1327] border border-pink-200/25 p-10 rounded-2xl glow-box pop-in max-w-md w-full text-center">
+    <div class="bg-[#0A2342] border border-sky-200/25 p-10 rounded-2xl glow-box pop-in max-w-md w-full text-center">
         <h1 class="text-4xl font-extrabold text-green-400 mb-2 animate-bounce">🔓 Rank Unlocked!</h1>
         <p class="text-sm text-gray-400 mb-1">You’ve proven your skills. Your new rank is:</p>
 

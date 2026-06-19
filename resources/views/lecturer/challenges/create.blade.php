@@ -1,17 +1,15 @@
 @extends('lecturer.layouts.app')
 
 @section('content')
-    <div class="challenge-form-page">
-        <section class="challenge-form-hero">
-            <p class="challenge-form-kicker">Bangun Mission Baru</p>
-            <h1 class="challenge-form-title">Buat challenge pembelajaran</h1>
-            <p class="challenge-form-copy">
-                Challenge mewakili satu mission belajar yang akan dikerjakan mahasiswa. Pilih section tujuan lalu tentukan judul challenge yang jelas dan mudah dipahami.
-            </p>
+    <div class="mission-form-page">
+        <section class="mission-form-hero">
+            <p class="mission-form-kicker">Mission Baru</p>
+            <h1 class="mission-form-title">Tambah mission belajar</h1>
+            <p class="mission-form-copy">Pilih bagian materi, lalu beri judul mission yang mudah dipahami mahasiswa.</p>
         </section>
 
         @if ($errors->any())
-            <div class="challenge-form-alert">
+            <div class="mission-form-alert">
                 <strong>Data belum bisa disimpan.</strong>
                 <ul>
                     @foreach ($errors->all() as $error)
@@ -21,212 +19,73 @@
             </div>
         @endif
 
-        <form action="{{ route('lecturer.challenges.store') }}" method="POST" class="challenge-form-card bg-white">
+        <form action="{{ route('lecturer.challenges.store') }}" method="POST" class="mission-form-card bg-white">
             @csrf
 
-            <div class="challenge-form-grid">
+            <div class="mission-form-grid">
                 <div>
-                    <label for="section_id" class="challenge-form-label">Section Tujuan</label>
-                    <select name="section_id" id="section_id" class="challenge-form-input" required>
-                        <option value="">Pilih section</option>
+                    <label for="section_id" class="mission-form-label">Bagian Materi</label>
+                    <select name="section_id" id="section_id" class="mission-form-input" required>
+                        <option value="">Pilih bagian</option>
                         @foreach ($sections as $section)
                             <option value="{{ $section->id }}" {{ (string) $selectedSectionId === (string) $section->id ? 'selected' : '' }}>
                                 {{ $section->order }} - {{ $section->name }}
                             </option>
                         @endforeach
                     </select>
-                    <p class="challenge-form-hint">Challenge akan tampil di bawah section yang Anda pilih.</p>
+                    <p class="mission-form-hint">Mission akan tampil pada bagian yang dipilih.</p>
                 </div>
 
                 <div>
-                    <label for="title" class="challenge-form-label">Judul Challenge</label>
-                    <input type="text" name="title" id="title" value="{{ old('title') }}" class="challenge-form-input" required>
-                    <p class="challenge-form-hint">Contoh: Pola dan Urutan, Instruksi Dasar, atau Logika Visual.</p>
+                    <label for="title" class="mission-form-label">Judul Mission</label>
+                    <input type="text" name="title" id="title" value="{{ old('title') }}" class="mission-form-input" required>
+                    <p class="mission-form-hint">Contoh: Pola dan Urutan.</p>
                 </div>
             </div>
 
-            <div class="challenge-form-summary">
-                <div class="challenge-summary-box">
-                    <span>Total EXP</span>
+            <div class="mission-form-summary">
+                <div class="mission-summary-box">
+                    <span>EXP</span>
                     <strong>Otomatis</strong>
-                    <small>Dihitung dari total soal dalam challenge.</small>
+                    <small>Mengikuti soal yang dimasukkan.</small>
                 </div>
-                <div class="challenge-summary-box">
-                    <span>Total Score</span>
+                <div class="mission-summary-box">
+                    <span>Poin</span>
                     <strong>Otomatis</strong>
-                    <small>Menyesuaikan akumulasi skor setiap soal.</small>
+                    <small>Mengikuti skor dari setiap soal.</small>
                 </div>
             </div>
 
-            <div class="challenge-form-actions">
-                <a href="{{ route('lecturer.challenges.index') }}" class="challenge-form-btn neutral">Kembali</a>
-                <button type="submit" class="challenge-form-btn primary">Simpan Challenge</button>
+            <div class="mission-form-actions">
+                <a href="{{ route('lecturer.challenges.index') }}" class="mission-form-btn neutral">Kembali</a>
+                <button type="submit" class="mission-form-btn primary">Simpan</button>
             </div>
         </form>
     </div>
 
     <style>
-        .challenge-form-page {
-            max-width: 980px;
-            margin: 0 auto;
-        }
-
-        .challenge-form-hero {
-            margin-bottom: 24px;
-            padding: 28px;
-            border-radius: 30px;
-            border: 1px solid rgba(255, 228, 236, 0.14);
-            background: rgba(74, 19, 39, 0.78);
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.22);
-        }
-
-        .challenge-form-kicker {
-            margin: 0;
-            font-size: 12px;
-            letter-spacing: 0.34em;
-            text-transform: uppercase;
-            color: rgba(255, 228, 236, 0.75);
-        }
-
-        .challenge-form-title {
-            margin: 12px 0 0;
-            color: #fff;
-            font-size: 40px;
-            font-weight: 700;
-        }
-
-        .challenge-form-copy {
-            margin: 14px 0 0;
-            color: rgba(255, 240, 244, 0.76);
-            line-height: 1.8;
-            max-width: 760px;
-        }
-
-        .challenge-form-alert {
-            margin-bottom: 16px;
-            padding: 16px 18px;
-            border-radius: 18px;
-            background: rgba(254, 226, 226, 0.96);
-            color: #991b1b;
-        }
-
-        .challenge-form-alert ul {
-            margin: 10px 0 0 18px;
-        }
-
-        .challenge-form-card {
-            padding: 24px;
-            border-radius: 30px;
-        }
-
-        .challenge-form-grid {
-            display: grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: 20px;
-        }
-
-        .challenge-form-label {
-            display: block;
-            margin-bottom: 10px;
-            color: #334155;
-            font-weight: 700;
-        }
-
-        .challenge-form-input {
-            width: 100%;
-            padding: 14px 16px;
-            border-radius: 16px;
-            border: 1px solid #f0b6c9;
-            box-sizing: border-box;
-            color: #1f2937;
-        }
-
-        .challenge-form-hint {
-            margin: 8px 0 0;
-            color: #94a3b8;
-            font-size: 13px;
-            line-height: 1.6;
-        }
-
-        .challenge-form-summary {
-            display: grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: 16px;
-            margin-top: 22px;
-        }
-
-        .challenge-summary-box {
-            padding: 18px;
-            border-radius: 22px;
-            background: #fff7fa;
-            border: 1px solid #f5c3d6;
-        }
-
-        .challenge-summary-box span {
-            display: block;
-            color: #be185d;
-            font-size: 13px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.18em;
-        }
-
-        .challenge-summary-box strong {
-            display: block;
-            margin-top: 10px;
-            color: #1f2937;
-            font-size: 22px;
-        }
-
-        .challenge-summary-box small {
-            display: block;
-            margin-top: 8px;
-            color: #64748b;
-            line-height: 1.6;
-        }
-
-        .challenge-form-actions {
-            display: flex;
-            justify-content: space-between;
-            gap: 14px;
-            margin-top: 24px;
-        }
-
-        .challenge-form-btn {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            padding: 14px 18px;
-            border-radius: 16px;
-            text-decoration: none;
-            font-weight: 700;
-            border: 0;
-            cursor: pointer;
-        }
-
-        .challenge-form-btn.neutral {
-            background: #64748b;
-            color: #fff;
-        }
-
-        .challenge-form-btn.primary {
-            background: linear-gradient(90deg, #c0265f, #ec4899);
-            color: #fff;
-        }
-
-        @media (max-width: 768px) {
-            .challenge-form-grid,
-            .challenge-form-summary {
-                grid-template-columns: 1fr;
-            }
-
-            .challenge-form-title {
-                font-size: 32px;
-            }
-
-            .challenge-form-actions {
-                flex-direction: column;
-            }
-        }
+        .mission-form-page { max-width:980px; margin:0 auto; }
+        .mission-form-hero { margin-bottom:18px; padding:22px 24px; border-radius:26px; border:1px solid rgba(191,219,254,.14); background:linear-gradient(135deg,#0A2342,#0F2F57); box-shadow:0 16px 34px rgba(15,23,42,.18); }
+        .mission-form-kicker { margin:0; font-size:11px; font-weight:900; letter-spacing:.18em; text-transform:uppercase; color:rgba(191,219,254,.76); }
+        .mission-form-title { margin:8px 0 0; color:#fff; font-size:34px; line-height:1.1; font-weight:900; }
+        .mission-form-copy { margin:8px 0 0; color:rgba(219,234,254,.75); line-height:1.55; }
+        .mission-form-alert { margin-bottom:14px; padding:14px 16px; border-radius:16px; background:rgba(254,226,226,.96); color:#991b1b; font-weight:700; }
+        .mission-form-alert ul { margin:10px 0 0 18px; }
+        .mission-form-card { padding:20px; border-radius:24px; border:1px solid #B7CCE6; box-shadow:0 12px 28px rgba(15,23,42,.08); }
+        .mission-form-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px; }
+        .mission-form-label { display:block; margin-bottom:8px; color:#263E5C; font-weight:900; font-size:14px; }
+        .mission-form-input { width:100%; height:50px; padding:0 14px; border-radius:15px; border:1px solid #9CB8D8; box-sizing:border-box; color:#09254A; outline:0; }
+        .mission-form-input:focus { border-color:#2BA7D8; box-shadow:0 0 0 4px rgba(37,99,235,.12); }
+        .mission-form-hint { margin:8px 0 0; color:#94a3b8; font-size:13px; line-height:1.5; }
+        .mission-form-summary { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; margin-top:16px; }
+        .mission-summary-box { padding:16px; border-radius:20px; background:#E8F0F8; border:1px solid #B7CCE6; }
+        .mission-summary-box span { display:block; color:#1D5FD6; font-size:12px; font-weight:900; letter-spacing:.14em; text-transform:uppercase; }
+        .mission-summary-box strong { display:block; margin-top:8px; color:#09254A; font-size:21px; }
+        .mission-summary-box small { display:block; margin-top:6px; color:#6A7C93; line-height:1.5; }
+        .mission-form-actions { display:flex; justify-content:space-between; gap:12px; margin-top:20px; }
+        .mission-form-btn { display:inline-flex; align-items:center; justify-content:center; padding:13px 17px; border-radius:15px; text-decoration:none; font-weight:900; border:0; cursor:pointer; }
+        .mission-form-btn.neutral { background:#6A7C93; color:#fff; }
+        .mission-form-btn.primary { background:linear-gradient(90deg,#1D5FD6,#2BA7D8); color:#fff; }
+        @media (max-width:768px) { .mission-form-grid,.mission-form-summary { grid-template-columns:1fr; } .mission-form-title { font-size:29px; } .mission-form-actions { flex-direction:column; } }
     </style>
 @endsection

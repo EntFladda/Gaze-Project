@@ -33,10 +33,6 @@ return new class extends Migration
             // EXP
             $table->integer('exp')->default(0);
 
-            // ❤️ Life System
-            $table->integer('lives')->default(5);
-            $table->timestamp('next_life_at')->nullable();
-
             // 🏆 Score System
             $table->integer('weekly_score')->default(0); // Skor yang direset setiap minggu
             $table->integer('total_score')->default(0);  // Akumulasi total skor sepanjang waktu

@@ -5,7 +5,7 @@
         <section class="student-form-hero">
             <p class="student-form-kicker">Edit Mahasiswa</p>
             <h1 class="student-form-title">Perbarui data mahasiswa</h1>
-            <p class="student-form-copy">Sesuaikan identitas mahasiswa dan progres akademiknya agar data pada dashboard pengajar tetap konsisten.</p>
+            <p class="student-form-copy">Sesuaikan identitas dan progres mahasiswa agar data pada dashboard dosen tetap konsisten.</p>
         </section>
 
         @if ($errors->any())
@@ -61,7 +61,7 @@
             </div>
 
             <div class="student-form-note">
-                Setelah disimpan, sistem akan menghitung ulang <strong>rank</strong> mahasiswa berdasarkan nilai EXP terbaru.
+                Setelah disimpan, peringkat mahasiswa akan dihitung ulang berdasarkan nilai EXP terbaru.
             </div>
 
             <div class="student-form-actions">
@@ -73,23 +73,23 @@
 
     <style>
         .student-form-page { max-width: 1000px; margin: 0 auto; }
-        .student-form-hero { margin-bottom: 24px; padding: 28px; border-radius: 30px; border: 1px solid rgba(255,228,236,.14); background: rgba(74,19,39,.78); box-shadow: 0 20px 50px rgba(0,0,0,.22); }
-        .student-form-kicker { margin: 0; font-size: 12px; letter-spacing: .34em; text-transform: uppercase; color: rgba(255,228,236,.75); }
+        .student-form-hero { margin-bottom: 24px; padding: 28px; border-radius: 30px; border: 1px solid rgba(191,219,254,.14); background: rgba(10,35,66,.78); box-shadow: 0 20px 50px rgba(0,0,0,.22); }
+        .student-form-kicker { margin: 0; font-size: 12px; letter-spacing: .34em; text-transform: uppercase; color: rgba(191,219,254,.75); }
         .student-form-title { margin: 12px 0 0; color: #fff; font-size: 40px; font-weight: 700; }
-        .student-form-copy { margin: 14px 0 0; color: rgba(255,240,244,.76); line-height: 1.8; max-width: 760px; }
+        .student-form-copy { margin: 14px 0 0; color: rgba(219,234,254,.76); line-height: 1.8; max-width: 760px; }
         .student-form-alert { margin-bottom: 16px; padding: 16px 18px; border-radius: 18px; background: rgba(254,226,226,.96); color: #991b1b; }
         .student-form-alert ul { margin: 10px 0 0 18px; }
         .student-form-card { padding: 24px; border-radius: 30px; }
         .student-form-grid { display: grid; gap: 20px; margin-bottom: 20px; }
         .student-form-grid.two { grid-template-columns: repeat(2, minmax(0,1fr)); }
         .student-form-grid.three { grid-template-columns: repeat(3, minmax(0,1fr)); }
-        .student-form-label { display:block; margin-bottom:10px; color:#334155; font-weight:700; }
-        .student-form-input { width:100%; padding:14px 16px; border-radius:16px; border:1px solid #f0b6c9; box-sizing:border-box; color:#1f2937 !important; background:#fff !important; }
+        .student-form-label { display:block; margin-bottom:10px; color:#263E5C; font-weight:700; }
+        .student-form-input { width:100%; padding:14px 16px; border-radius:16px; border:1px solid #9CB8D8; box-sizing:border-box; color:#09254A !important; background:#fff !important; }
         .student-form-note { padding: 16px 18px; border-radius: 18px; background: #fff7ed; color: #9a3412; line-height: 1.7; }
         .student-form-actions { display:flex; justify-content:space-between; gap:14px; margin-top:24px; }
         .student-form-btn { display:inline-flex; align-items:center; justify-content:center; padding:14px 18px; border-radius:16px; text-decoration:none; font-weight:700; border:0; cursor:pointer; color:#fff; }
-        .student-form-btn.neutral { background:#64748b; }
-        .student-form-btn.primary { background:linear-gradient(90deg,#c0265f,#ec4899); }
+        .student-form-btn.neutral { background:#6A7C93; }
+        .student-form-btn.primary { background:linear-gradient(90deg,#1D5FD6,#2BA7D8); }
         @media (max-width:768px) {
             .student-form-grid.two, .student-form-grid.three { grid-template-columns:1fr; }
             .student-form-title { font-size:32px; }

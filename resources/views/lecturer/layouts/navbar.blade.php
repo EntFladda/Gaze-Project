@@ -11,7 +11,7 @@
 
     <div class="lecturer-user-menu">
         <button id="userMenuButton" class="lecturer-user-button">
-            <img src="{{ Auth::user()->profile_photo ? asset('storage/' . Auth::user()->profile_photo) : asset('images/default-avatar.png') }}"
+            <img src="{{ Auth::user()->profile_photo ? asset('storage/' . Auth::user()->profile_photo) : asset('storage/profile_photos/default-3d.svg') }}"
                 alt="User Photo" class="lecturer-user-photo">
 
             <div class="lecturer-user-copy">
@@ -24,7 +24,7 @@
 
         <div id="userDropdown" class="lecturer-user-dropdown hidden">
             <div class="lecturer-user-dropdown-head">
-                <img src="{{ Auth::user()->profile_photo ? asset('storage/' . Auth::user()->profile_photo) : asset('images/default-avatar.png') }}"
+                    <img src="{{ Auth::user()->profile_photo ? asset('storage/' . Auth::user()->profile_photo) : asset('storage/profile_photos/default-3d.svg') }}"
                     alt="User Avatar" class="lecturer-user-dropdown-photo">
                 <p class="lecturer-user-dropdown-kicker">Akun</p>
                 <p class="lecturer-user-dropdown-email">{{ Auth::user()->email }}</p>
@@ -49,8 +49,8 @@
         align-items: center;
         justify-content: space-between;
         padding: 18px 24px;
-        background: rgba(74, 19, 39, 0.84);
-        border-bottom: 1px solid rgba(255, 228, 236, 0.12);
+        background: rgba(11, 47, 107, 0.84);
+        border-bottom: 1px solid rgba(183, 204, 230, 0.12);
         box-shadow: 0 12px 35px rgba(0, 0, 0, 0.18);
         backdrop-filter: blur(12px);
     }
@@ -69,7 +69,7 @@
         align-items: center;
         justify-content: center;
         background: rgba(255, 255, 255, 0.1);
-        border: 1px solid rgba(255, 228, 236, 0.18);
+        border: 1px solid rgba(183, 204, 230, 0.18);
     }
 
     .lecturer-navbar-logo {
@@ -83,7 +83,7 @@
         font-size: 11px;
         text-transform: uppercase;
         letter-spacing: 0.32em;
-        color: rgba(255, 228, 236, 0.72);
+        color: rgba(183, 204, 230, 0.72);
     }
 
     .lecturer-navbar-link {
@@ -103,7 +103,7 @@
         gap: 12px;
         padding: 10px 14px;
         border-radius: 22px;
-        border: 1px solid rgba(255, 228, 236, 0.18);
+        border: 1px solid rgba(183, 204, 230, 0.18);
         background: rgba(255, 255, 255, 0.08);
         color: #fff;
         cursor: pointer;
@@ -113,7 +113,7 @@
     .lecturer-user-dropdown-photo {
         object-fit: cover;
         border-radius: 999px;
-        border: 2px solid rgba(255, 228, 236, 0.3);
+        border: 2px solid rgba(183, 204, 230, 0.3);
         background: #fff;
     }
 
@@ -137,7 +137,7 @@
         font-size: 11px;
         text-transform: uppercase;
         letter-spacing: 0.22em;
-        color: rgba(255, 228, 236, 0.7);
+        color: rgba(183, 204, 230, 0.7);
     }
 
     .lecturer-user-name {
@@ -157,15 +157,15 @@
         width: 240px;
         overflow: hidden;
         border-radius: 22px;
-        border: 1px solid rgba(255, 228, 236, 0.16);
-        background: #4a1327;
+        border: 1px solid rgba(183, 204, 230, 0.16);
+        background: #0A2342;
         box-shadow: 0 20px 45px rgba(0, 0, 0, 0.32);
     }
 
     .lecturer-user-dropdown-head {
         padding: 18px 16px;
         text-align: center;
-        border-bottom: 1px solid rgba(255, 228, 236, 0.1);
+        border-bottom: 1px solid rgba(183, 204, 230, 0.1);
     }
 
     .lecturer-user-dropdown-kicker {
@@ -173,7 +173,7 @@
         font-size: 11px;
         text-transform: uppercase;
         letter-spacing: 0.24em;
-        color: rgba(255, 228, 236, 0.68);
+        color: rgba(183, 204, 230, 0.68);
     }
 
     .lecturer-user-dropdown-email {
@@ -188,7 +188,7 @@
         width: 100%;
         border: 0;
         background: transparent;
-        color: #ffe7ef;
+        color: #DCE7F3;
         text-align: left;
         padding: 14px 16px;
         font-weight: 600;
@@ -196,7 +196,7 @@
     }
 
     .lecturer-user-dropdown-action:hover {
-        background: rgba(219, 39, 119, 0.28);
+        background: rgba(29, 95, 214, 0.28);
     }
 
     .hidden {

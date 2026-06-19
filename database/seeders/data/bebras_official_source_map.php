@@ -1,0 +1,165 @@
+<?php
+
+return [
+    'Logic Playground' => [
+        'Mission 1 - Pola dan Urutan' => [
+            ['book' => 'penegak2016', 'title' => 'Kartu Geometris'],
+            ['book' => 'penegak2018', 'title' => 'Infinite Ice Cream'],
+            ['book' => 'penegak2016', 'title' => 'Kode Pemindai'],
+            ['book' => 'penegak2019', 'title' => 'Putar, Putar dan Putar'],
+            ['book' => 'penegak2020', 'title' => 'Kelereng dan Kotak-kotak'],
+        ],
+        'Mission 2 - Instruksi dan Algoritma' => [
+            ['book' => 'penegak2016', 'title' => 'Maze'],
+            ['book' => 'penegak2018', 'title' => 'Medical Labs'],
+            ['book' => 'penegak2017', 'title' => 'Kiri Kanan'],
+            ['book' => 'penegak2018', 'title' => 'Petak dan Kotak'],
+            ['book' => 'penegak2020', 'title' => 'Permainan Robot'],
+        ],
+        'Mission 3 - Logika dan Informasi' => [
+            ['book' => 'penegak2016', 'title' => 'Ramuan Ajaib'],
+            ['book' => 'penegak2017', 'title' => 'Senyum'],
+            ['book' => 'penegak2020', 'title' => 'Hamming Lemmings'],
+            ['book' => 'penegak2018', 'title' => 'Siapa Berbohong?'],
+            ['book' => 'penegak2017', 'title' => 'Penyusup'],
+        ],
+    ],
+    'Pattern Lab' => [
+        'Mission 1 - Jejak dan Rute' => [
+            ['book' => 'penegak2017', 'title' => 'Kota Penuh Putaran'],
+            ['book' => 'penegak2017', 'title' => 'Kiri Kanan'],
+            ['book' => 'penegak2019', 'title' => 'Putar, Putar dan Putar'],
+            ['book' => 'penegak2017', 'title' => 'Memindahkan Dadu'],
+            ['book' => 'penegak2018', 'title' => 'Petak dan Kotak'],
+        ],
+        'Mission 2 - Data dan Simbol' => [
+            ['book' => 'penegak2017', 'title' => 'Kode Kartu'],
+            ['book' => 'penegak2017', 'title' => 'Lampu Kantor'],
+            ['book' => 'penegak2019', 'title' => 'Pencacah'],
+            ['book' => 'penegak2016', 'title' => 'Kode Kix'],
+            ['book' => 'penegak2016', 'title' => 'Kode Pemindai'],
+        ],
+        'Mission 3 - Penyaringan Logika' => [
+            ['book' => 'penegak2020', 'title' => 'Mesin Matematika'],
+            ['book' => 'penegak2019', 'title' => 'Daur Ulang Botol Gelas'],
+            ['book' => 'penegak2020', 'title' => 'Mesin Penuang Susu'],
+            ['book' => 'penegak2018', 'title' => 'Siapa Berbohong?'],
+            ['book' => 'penegak2020', 'title' => 'Hamming Lemmings'],
+        ],
+    ],
+    'Algorithm Flow' => [
+        'Mission 1 - Flow Control' => [
+            ['book' => 'penegak2017', 'title' => 'Kiri Kanan'],
+            ['book' => 'penegak2016', 'title' => 'Plat Rakit'],
+            ['book' => 'penegak2018', 'title' => 'Petak dan Kotak'],
+            ['book' => 'penegak2016', 'title' => 'Maze'],
+            ['book' => 'penegak2018', 'title' => 'Medical Labs'],
+        ],
+        'Mission 2 - Step Builder' => [
+            ['book' => 'penegak2016', 'title' => 'Karung-karung Dalam Elevator'],
+            ['book' => 'penegak2018', 'title' => 'Antrian Mobil'],
+            ['book' => 'penegak2018', 'title' => 'Dua Berang-berang Pekerja'],
+            ['book' => 'penegak2018', 'title' => 'Tugas Satu Jam'],
+            ['book' => 'penegak2017', 'title' => 'Pizzeria Biberia'],
+        ],
+        'Mission 3 - Logic Route' => [
+            ['book' => 'penegak2018', 'title' => 'Harga Terlambat Bangun'],
+            ['book' => 'penegak2018', 'title' => 'Jalan Tol'],
+            ['book' => 'penegak2020', 'title' => 'Keliling Museum'],
+            ['book' => 'penegak2017', 'title' => 'Terowongan'],
+            ['book' => 'penegak2017', 'title' => 'Penyusup'],
+        ],
+    ],
+    'Data Quest' => [
+        'Mission 1 - Data Signals' => [
+            ['book' => 'penegak2016', 'title' => 'Kode Kix'],
+            ['book' => 'penegak2016', 'title' => 'Kode Pemindai'],
+            ['book' => 'penegak2020', 'title' => 'Kode Roti'],
+            ['book' => 'penegak2019', 'title' => 'Pencacah'],
+            ['book' => 'penegak2017', 'title' => 'Lampu Kantor'],
+        ],
+        'Mission 2 - Data Sorting' => [
+            ['book' => 'penegak2017', 'title' => 'Tandems'],
+            ['book' => 'penegak2018', 'title' => 'Kata Terpanjang'],
+            ['book' => 'penegak2019', 'title' => 'Meniliti Rekaman'],
+            ['book' => 'penegak2019', 'title' => 'Pengaturan Tempat Duduk'],
+            ['book' => 'penegak2018', 'title' => 'Titik Utama Wifi'],
+        ],
+        'Mission 3 - Insight Finder' => [
+            ['book' => 'penegak2019', 'title' => 'Pengaturan Tempat Duduk'],
+            ['book' => 'penegak2019', 'title' => 'Semut di Sarang'],
+            ['book' => 'penegak2019', 'title' => 'Si Topi Merah'],
+            ['book' => 'penegak2017', 'title' => 'Senyum'],
+            ['book' => 'penegak2019', 'title' => 'Daur Ulang Botol Gelas'],
+        ],
+    ],
+    'System Mapping' => [
+        'Mission 1 - Map the Process' => [
+            ['book' => 'penegak2017', 'title' => 'Terowongan'],
+            ['book' => 'penegak2018', 'title' => 'Tempat Perlindungan'],
+            ['book' => 'penegak2020', 'title' => 'Toko Sembako'],
+            ['book' => 'penegak2018', 'title' => 'Bendungan 2'],
+            ['book' => 'penegak2018', 'title' => 'Titik Utama Wifi'],
+        ],
+        'Mission 2 - Component Link' => [
+            ['book' => 'penegak2020', 'title' => 'Lima Berang-berang'],
+            ['book' => 'penegak2018', 'title' => 'Tiga sekawan Berang-berang'],
+            ['book' => 'penegak2018', 'title' => 'Tempat Perlindungan'],
+            ['book' => 'penegak2018', 'title' => 'Bendungan 2'],
+            ['book' => 'penegak2020', 'title' => 'Toko Sembako'],
+        ],
+        'Mission 3 - System View' => [
+            ['book' => 'penegak2018', 'title' => 'Bendungan 2'],
+            ['book' => 'penegak2020', 'title' => 'Mengisi Kotak'],
+            ['book' => 'penegak2020', 'title' => 'Toko Sembako'],
+            ['book' => 'penegak2020', 'title' => 'Lima Berang-berang'],
+            ['book' => 'penegak2020', 'title' => 'Mobil Listrik'],
+        ],
+    ],
+    'Decision Engine' => [
+        'Mission 1 - Rule Matcher' => [
+            ['book' => 'penegak2017', 'title' => 'Upah Membantu'],
+            ['book' => 'penegak2017', 'title' => 'Warung Soda'],
+            ['book' => 'penegak2020', 'title' => 'Mesin Matematika'],
+            ['book' => 'penegak2020', 'title' => 'Mesin Penuang Susu'],
+            ['book' => 'penegak2020', 'title' => 'Hamming Lemmings'],
+        ],
+        'Mission 2 - Option Filter' => [
+            ['book' => 'penegak2019', 'title' => 'Membeli Sepatu'],
+            ['book' => 'penegak2018', 'title' => 'Kotak Krayon'],
+            ['book' => 'penegak2019', 'title' => 'Daur Ulang Botol Gelas'],
+            ['book' => 'penegak2018', 'title' => 'Antrian Mobil'],
+            ['book' => 'penegak2020', 'title' => 'Toko Sembako'],
+        ],
+        'Mission 3 - Smart Choice' => [
+            ['book' => 'penegak2017', 'title' => 'Memindahkan Dadu'],
+            ['book' => 'penegak2020', 'title' => 'Menara Spesial'],
+            ['book' => 'penegak2020', 'title' => 'Mobil Listrik'],
+            ['book' => 'penegak2018', 'title' => 'Harga Terlambat Bangun'],
+            ['book' => 'penegak2018', 'title' => 'Jalan Tol'],
+        ],
+    ],
+    'Innovation Sprint' => [
+        'Mission 1 - Idea Trigger' => [
+            ['book' => 'penegak2020', 'title' => 'Kelereng dan Kotak-kotak'],
+            ['book' => 'penegak2020', 'title' => 'Menara Balok'],
+            ['book' => 'penegak2018', 'title' => 'Tugas Satu Jam'],
+            ['book' => 'penegak2020', 'title' => 'Kode Roti'],
+            ['book' => 'penegak2020', 'title' => 'Krisis Akibat Pandemi'],
+        ],
+        'Mission 2 - Prototype Path' => [
+            ['book' => 'penegak2020', 'title' => 'Permainan Robot'],
+            ['book' => 'penegak2018', 'title' => 'Dua Berang-berang Pekerja'],
+            ['book' => 'penegak2017', 'title' => 'Pizzeria Biberia'],
+            ['book' => 'penegak2018', 'title' => 'Medical Labs'],
+            ['book' => 'penegak2018', 'title' => 'Tugas Satu Jam'],
+        ],
+        'Mission 3 - Final Sprint' => [
+            ['book' => 'penegak2020', 'title' => 'Krisis Akibat Pandemi'],
+            ['book' => 'penegak2020', 'title' => 'Mobil Listrik'],
+            ['book' => 'penegak2019', 'title' => 'Si Topi Merah'],
+            ['book' => 'penegak2020', 'title' => 'Menara Balok'],
+            ['book' => 'penegak2020', 'title' => 'Kode Roti'],
+        ],
+    ],
+];

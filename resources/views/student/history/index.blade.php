@@ -1,143 +1,506 @@
 @extends('student.layouts.app')
 
 @section('content')
-    <div class="animate-fadeIn">
-        <div class="mx-auto max-w-6xl px-4 py-10">
-            <div class="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
-                <section class="rounded-[32px] border border-pink-200/20 bg-[#4a1327] p-8 text-white shadow-2xl">
-                    <p class="text-sm font-semibold uppercase tracking-[0.35em] text-pink-200/75">Riwayat Belajar</p>
-                    <h1 class="mt-3 text-4xl font-bold leading-tight">Lihat jejak mission yang sudah pernah kamu selesaikan</h1>
-                    <p class="mt-4 max-w-2xl text-rose-100/80 leading-7">
-                        Halaman ini membantu mahasiswa melihat hasil mission sebelumnya, membandingkan attempt, dan membuka
-                        kembali pembahasan dari challenge yang sudah pernah dikerjakan.
+    <div class="history-page">
+        <div class="history-wrap">
+            <section class="history-hero">
+                <div>
+                    <p class="history-eyebrow">Riwayat Belajar</p>
+                    <h1>Jejak pengerjaan mission</h1>
+                    <p class="history-subtitle">
+                        Lihat kembali hasil setiap percobaan, poin, EXP, dan review pembahasan yang sudah dikerjakan.
                     </p>
+                </div>
+            </section>
 
-                    <div class="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-                        <div class="rounded-2xl bg-white/10 p-4">
-                            <p class="text-xs uppercase tracking-[0.2em] text-pink-100/70">Mission Selesai</p>
-                            <p class="mt-2 text-2xl font-bold">{{ $summary['completed_missions'] }}</p>
+            <section class="history-stats" aria-label="Ringkasan riwayat belajar">
+                <article class="history-stat-card">
+                    <span>Mission Selesai</span>
+                    <strong>{{ $summary['completed_missions'] }}</strong>
+                </article>
+                <article class="history-stat-card">
+                    <span>Total Percobaan</span>
+                    <strong>{{ $summary['total_attempts'] }}</strong>
+                </article>
+                <article class="history-stat-card">
+                    <span>Poin Tertinggi</span>
+                    <strong>{{ number_format($summary['best_score']) }}</strong>
+                </article>
+                <article class="history-stat-card">
+                    <span>Rata-rata Poin</span>
+                    <strong>{{ number_format($summary['average_score'], 1) }}</strong>
+                </article>
+            </section>
+
+            <div class="history-grid">
+                <section class="history-panel history-panel-main">
+                    <div class="history-section-head">
+                        <div>
+                            <p class="history-eyebrow">Daftar Percobaan</p>
+                            <h2>Riwayat pengerjaan</h2>
                         </div>
-                        <div class="rounded-2xl bg-white/10 p-4">
-                            <p class="text-xs uppercase tracking-[0.2em] text-pink-100/70">Total Attempt</p>
-                            <p class="mt-2 text-2xl font-bold">{{ $summary['total_attempts'] }}</p>
-                        </div>
-                        <div class="rounded-2xl bg-white/10 p-4">
-                            <p class="text-xs uppercase tracking-[0.2em] text-pink-100/70">Skor Terbaik</p>
-                            <p class="mt-2 text-2xl font-bold">{{ number_format($summary['best_score']) }}</p>
-                        </div>
-                        <div class="rounded-2xl bg-white/10 p-4">
-                            <p class="text-xs uppercase tracking-[0.2em] text-pink-100/70">Rata-rata Skor</p>
-                            <p class="mt-2 text-2xl font-bold">{{ number_format($summary['average_score'], 1) }}</p>
-                        </div>
+                        <span class="history-chip">Terbaru</span>
                     </div>
-                </section>
 
-                <section class="rounded-[32px] border border-rose-200/40 bg-[#fff8f8] p-7 text-slate-900 shadow-xl">
-                    <p class="text-sm font-semibold uppercase tracking-[0.25em] text-rose-500">Highlight</p>
-                    <h2 class="mt-2 text-2xl font-bold">Best Result per Mission</h2>
+                    <div class="history-attempt-list">
+                        @forelse ($results as $result)
+                            @php
+                                $totalQuestions = $result->challenge?->questions_count ?? 0;
+                                $donePercent = $totalQuestions > 0 ? min(100, round(($result->correct_answers / $totalQuestions) * 100)) : 0;
+                            @endphp
 
-                    <div class="mt-6 space-y-4 max-h-[400px] overflow-y-auto pr-2">
-                        @forelse ($bestResults as $result)
-                            <div class="rounded-2xl border border-slate-200 bg-slate-50 p-5">
-                                <p class="text-xs uppercase tracking-[0.2em] text-slate-400">
-                                    {{ $result->challenge?->section?->name ?? 'Section' }}
-                                </p>
-                                <h3 class="mt-2 text-lg font-bold">{{ $result->challenge?->title ?? 'Mission' }}</h3>
-                                <div class="mt-4 grid grid-cols-3 gap-3 text-sm">
-                                    <div class="rounded-xl bg-white p-3 border border-slate-200">
-                                        <p class="text-slate-400">Score</p>
-                                        <p class="mt-1 font-bold">{{ $result->total_score }}</p>
+                            <article class="history-attempt-card">
+                                <div class="history-attempt-main">
+                                    <div class="history-attempt-icon">
+                                        {{ str_pad($result->attempt_number, 2, '0', STR_PAD_LEFT) }}
                                     </div>
-                                    <div class="rounded-xl bg-white p-3 border border-slate-200">
-                                        <p class="text-slate-400">EXP</p>
-                                        <p class="mt-1 font-bold">{{ $result->total_exp }}</p>
-                                    </div>
-                                    <div class="rounded-xl bg-white p-3 border border-slate-200">
-                                        <p class="text-slate-400">Attempt</p>
-                                        <p class="mt-1 font-bold">#{{ $result->attempt_number }}</p>
+                                    <div>
+                                        <p class="history-attempt-meta">
+                                            Section {{ $result->challenge?->section?->order ?? '-' }} - {{ $result->challenge?->section?->name ?? 'Section' }}
+                                        </p>
+                                        <h3>{{ $result->challenge?->title ?? 'Mission' }}</h3>
+                                        <p class="history-attempt-time">
+                                            {{ optional($result->ended_at)->format('d M Y, H:i') }} - {{ $totalQuestions }} soal
+                                        </p>
                                     </div>
                                 </div>
-                            </div>
+
+                                <div class="history-attempt-progress" aria-label="Progress pengerjaan">
+                                    <div class="history-progress-top">
+                                        <span>Tuntas</span>
+                                        <strong>{{ $result->correct_answers }}/{{ $totalQuestions }} soal</strong>
+                                    </div>
+                                    <div class="history-progress-track">
+                                        <span style="width: {{ $donePercent }}%"></span>
+                                    </div>
+                                </div>
+
+                                <div class="history-attempt-score">
+                                    <span class="history-score-pill history-score-point">{{ $result->total_score }} Poin</span>
+                                    <span class="history-score-pill history-score-exp">{{ $result->total_exp }} EXP</span>
+                                </div>
+
+                                <a href="{{ route('student.review', ['challenge' => $result->challenge_id, 'attempt' => $result->attempt_number]) }}"
+                                    class="history-action">
+                                    Lihat review
+                                </a>
+                            </article>
                         @empty
-                            <div class="rounded-2xl border border-slate-200 bg-slate-50 p-5 text-slate-600">
-                                Belum ada mission yang selesai. Kerjakan mission pertama untuk mulai membangun riwayat belajar.
+                            <div class="history-empty">
+                                <strong>Belum ada riwayat.</strong>
+                                <span>Selesaikan satu mission dulu, nanti hasilnya muncul di sini.</span>
                             </div>
                         @endforelse
                     </div>
+
+                    <div class="history-pagination">
+                        <p>Halaman {{ $results->currentPage() }} dari {{ $results->lastPage() }}</p>
+
+                        <nav class="history-pagination-nav" aria-label="Navigasi halaman riwayat">
+                            <a href="{{ $results->onFirstPage() ? '#' : $results->previousPageUrl() }}"
+                                class="history-page-link history-page-arrow {{ $results->onFirstPage() ? 'is-disabled' : '' }}"
+                                @if ($results->onFirstPage()) aria-disabled="true" tabindex="-1" @endif>
+                                Sebelumnya
+                            </a>
+
+                            <div class="history-page-numbers">
+                                @foreach ($results->getUrlRange(1, max(1, $results->lastPage())) as $page => $url)
+                                    <a href="{{ $url }}"
+                                        class="history-page-link {{ $page === $results->currentPage() ? 'is-active' : '' }}"
+                                        aria-current="{{ $page === $results->currentPage() ? 'page' : 'false' }}">
+                                        {{ $page }}
+                                    </a>
+                                @endforeach
+                            </div>
+
+                            <a href="{{ $results->hasMorePages() ? $results->nextPageUrl() : '#' }}"
+                                class="history-page-link history-page-arrow {{ $results->hasMorePages() ? '' : 'is-disabled' }}"
+                                @if (! $results->hasMorePages()) aria-disabled="true" tabindex="-1" @endif>
+                                Berikutnya
+                            </a>
+                        </nav>
+                    </div>
                 </section>
             </div>
-
-            <section class="mt-8 rounded-[32px] border border-rose-200/40 bg-[#fff8f8] p-7 text-slate-900 shadow-xl">
-                <div class="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
-                    <div>
-                        <p class="text-sm font-semibold uppercase tracking-[0.25em] text-rose-500">Daftar Attempt</p>
-                        <h2 class="mt-2 text-3xl font-bold">Attempt Terbaru</h2>
-                    </div>
-                    <p class="text-sm text-slate-500">Urut dari yang paling baru selesai dikerjakan.</p>
-                </div>
-
-                <div class="mt-6 overflow-x-auto">
-                    <table class="min-w-full divide-y divide-slate-200">
-                        <thead>
-                            <tr class="text-left text-xs uppercase tracking-[0.2em] text-slate-400">
-                                <th class="pb-4 pr-4">Mission</th>
-                                <th class="pb-4 pr-4">Section</th>
-                                <th class="pb-4 pr-4">Attempt</th>
-                                <th class="pb-4 pr-4">Hasil</th>
-                                <th class="pb-4 pr-4">Waktu</th>
-                                <th class="pb-4 text-right">Aksi</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-slate-200">
-                            @forelse ($results as $result)
-                                <tr class="align-top">
-                                    <td class="py-4 pr-4">
-                                        <p class="font-semibold">{{ $result->challenge?->title ?? 'Mission' }}</p>
-                                        <p class="mt-1 text-sm text-slate-500">
-                                            {{ $result->challenge?->questions_count ?? 0 }} soal
-                                        </p>
-                                    </td>
-                                    <td class="py-4 pr-4 text-sm text-slate-600">
-                                        Section {{ $result->challenge?->section?->order ?? '-' }} -
-                                        {{ $result->challenge?->section?->name ?? '-' }}
-                                    </td>
-                                    <td class="py-4 pr-4 text-sm font-semibold text-slate-700">
-                                        #{{ $result->attempt_number }}
-                                    </td>
-                                    <td class="py-4 pr-4">
-                                        <div class="flex flex-wrap gap-2 text-sm">
-                                            <span class="rounded-full bg-emerald-50 px-3 py-1 font-semibold text-emerald-700">
-                                                Score {{ $result->total_score }}
-                                            </span>
-                                            <span class="rounded-full bg-sky-50 px-3 py-1 font-semibold text-sky-700">
-                                                EXP {{ $result->total_exp }}
-                                            </span>
-                                            <span class="rounded-full bg-rose-50 px-3 py-1 font-semibold text-rose-700">
-                                                {{ $result->correct_answers }} benar / {{ $result->wrong_answers }} salah
-                                            </span>
-                                        </div>
-                                    </td>
-                                    <td class="py-4 pr-4 text-sm text-slate-600">
-                                        {{ optional($result->ended_at)->format('d M Y, H:i') }}
-                                    </td>
-                                    <td class="py-4 text-right">
-                                        <a href="{{ route('student.review', ['challenge' => $result->challenge_id, 'attempt' => $result->attempt_number]) }}"
-                                            class="inline-flex rounded-2xl bg-gradient-to-r from-pink-600 to-rose-500 px-4 py-2 text-sm font-semibold text-white shadow transition hover:scale-[1.02]">
-                                            Review
-                                        </a>
-                                    </td>
-                                </tr>
-                            @empty
-                                <tr>
-                                    <td colspan="6" class="py-8 text-center text-slate-500">
-                                        Belum ada attempt yang selesai. Mulai mission pertama untuk melihat riwayat belajar.
-                                    </td>
-                                </tr>
-                            @endforelse
-                        </tbody>
-                    </table>
-                </div>
-            </section>
         </div>
     </div>
+
+    <style>
+        .history-page {
+            min-height: 100vh;
+            padding: 36px 18px 56px;
+        }
+
+        .history-wrap {
+            width: min(1180px, 100%);
+            margin: 0 auto;
+        }
+
+        .history-hero,
+        .history-panel,
+        .history-stat-card {
+            border: 1px solid rgba(156, 184, 216, 0.25);
+            color: #fff;
+        }
+
+        .history-hero {
+            border-radius: 30px;
+            background: linear-gradient(135deg, #0A2342 0%, #0F2F57 58%, #1D5FD6 100%);
+            padding: 34px;
+            box-shadow: 0 22px 48px rgba(0, 0, 0, 0.22);
+        }
+
+        .history-eyebrow {
+            margin: 0;
+            color: #9CB8D8;
+            font-size: 0.78rem;
+            font-weight: 800;
+            letter-spacing: 0.34em;
+            text-transform: uppercase;
+        }
+
+        .history-hero h1,
+        .history-section-head h2 {
+            margin: 10px 0 0;
+            color: #fff;
+            font-weight: 900;
+            line-height: 1.1;
+        }
+
+        .history-hero h1 {
+            font-size: clamp(2rem, 4vw, 3.2rem);
+        }
+
+        .history-subtitle {
+            max-width: 720px;
+            margin: 14px 0 0;
+            color: rgba(220, 231, 243, 0.82);
+            font-size: 1rem;
+            line-height: 1.7;
+        }
+
+        .history-stats {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 16px;
+            margin-top: 18px;
+        }
+
+        .history-stat-card {
+            border-radius: 22px;
+            background: rgba(11, 47, 107, 0.92);
+            padding: 22px;
+        }
+
+        .history-stat-card span,
+        .history-attempt-card small {
+            display: block;
+            color: rgba(220, 231, 243, 0.68);
+        }
+
+        .history-stat-card span {
+            font-size: 0.78rem;
+            font-weight: 800;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+        }
+
+        .history-stat-card strong {
+            display: block;
+            margin-top: 10px;
+            color: #fff;
+            font-size: 2rem;
+            line-height: 1;
+        }
+
+        .history-grid {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr);
+            gap: 18px;
+            margin-top: 18px;
+            align-items: start;
+        }
+
+        .history-panel {
+            border-radius: 28px;
+            background: linear-gradient(135deg, #0A2342 0%, #0F2F57 100%);
+            padding: 24px;
+        }
+
+        .history-section-head {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            gap: 14px;
+            margin-bottom: 18px;
+        }
+
+        .history-section-head h2 {
+            font-size: 1.8rem;
+        }
+
+        .history-chip {
+            border-radius: 999px;
+            background: rgba(183, 204, 230, 0.12);
+            color: #F4C45D;
+            padding: 10px 15px;
+            font-size: 0.85rem;
+            font-weight: 800;
+        }
+
+        .history-attempt-list {
+            display: grid;
+            gap: 14px;
+        }
+
+        .history-attempt-card {
+            display: grid;
+            grid-template-columns: minmax(260px, 1.35fr) minmax(180px, 0.8fr) auto auto;
+            gap: 16px;
+            align-items: center;
+            border: 1px solid rgba(156, 184, 216, 0.25);
+            border-radius: 22px;
+            background: rgba(255, 248, 248, 0.08);
+            padding: 18px;
+        }
+
+        .history-attempt-main {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            min-width: 0;
+        }
+
+        .history-attempt-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 54px;
+            height: 54px;
+            flex: 0 0 54px;
+            border-radius: 18px;
+            background: linear-gradient(135deg, #1D5FD6, #F2A93B);
+            color: #fff;
+            font-weight: 900;
+            box-shadow: 0 12px 24px rgba(29, 95, 214, 0.22);
+        }
+
+        .history-attempt-meta,
+        .history-attempt-time {
+            margin: 0;
+            color: rgba(220, 231, 243, 0.7);
+            font-size: 0.9rem;
+            font-weight: 700;
+        }
+
+        .history-attempt-card h3 {
+            margin: 5px 0;
+            color: #fff;
+            font-size: 1.2rem;
+            font-weight: 900;
+            line-height: 1.25;
+        }
+
+        .history-progress-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            color: rgba(220, 231, 243, 0.72);
+            font-size: 0.85rem;
+            font-weight: 800;
+        }
+
+        .history-progress-top strong {
+            color: #7cf7a6;
+        }
+
+        .history-progress-track {
+            height: 9px;
+            margin-top: 9px;
+            overflow: hidden;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.12);
+        }
+
+        .history-progress-track span {
+            display: block;
+            height: 100%;
+            border-radius: inherit;
+            background: linear-gradient(90deg, #1D5FD6, #F2A93B);
+        }
+
+        .history-attempt-score {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: flex-end;
+        }
+
+        .history-score-pill {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 999px;
+            padding: 9px 12px;
+            font-size: 0.86rem;
+            font-weight: 900;
+            white-space: nowrap;
+        }
+
+        .history-score-point {
+            background: #fff3bf;
+            color: #8a4b00;
+        }
+
+        .history-score-exp {
+            background: #D9EEF7;
+            color: #0369a1;
+        }
+
+        .history-action {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 14px;
+            background: linear-gradient(90deg, #1D5FD6, #2BA7D8);
+            color: #fff;
+            padding: 12px 16px;
+            font-size: 0.9rem;
+            font-weight: 900;
+            text-decoration: none;
+            white-space: nowrap;
+        }
+
+        .history-action:hover {
+            filter: brightness(1.04);
+        }
+
+        .history-empty {
+            display: grid;
+            gap: 6px;
+            border-radius: 18px;
+            background: rgba(183, 204, 230, 0.12);
+            padding: 22px;
+            text-align: center;
+            color: rgba(220, 231, 243, 0.72);
+        }
+
+        .history-empty strong {
+            color: #fff;
+        }
+
+        .history-empty-small {
+            text-align: left;
+        }
+
+        .history-pagination {
+            margin-top: 20px;
+        }
+
+        .history-pagination p {
+            margin: 0 0 12px;
+            color: rgba(220, 231, 243, 0.72);
+            font-weight: 800;
+        }
+
+        .history-pagination-nav {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .history-page-numbers {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .history-page-link {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 42px;
+            border: 1px solid rgba(156, 184, 216, 0.25);
+            border-radius: 14px;
+            background: rgba(255, 248, 248, 0.08);
+            color: #fff;
+            padding: 10px 13px;
+            font-weight: 900;
+            text-decoration: none;
+        }
+
+        .history-page-link.is-active {
+            border-color: transparent;
+            background: #1D5FD6;
+            color: #fff;
+        }
+
+        .history-page-link.is-disabled {
+            pointer-events: none;
+            opacity: 0.45;
+        }
+
+        .history-page-arrow {
+            min-width: 110px;
+        }
+
+        @media (max-width: 1180px) {
+            .history-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .history-attempt-card {
+                grid-template-columns: 1fr;
+                align-items: stretch;
+            }
+
+            .history-attempt-score {
+                justify-content: flex-start;
+            }
+
+            .history-action {
+                width: 100%;
+            }
+        }
+
+        @media (max-width: 860px) {
+            .history-page {
+                padding-inline: 12px;
+            }
+
+            .history-hero,
+            .history-panel {
+                border-radius: 24px;
+                padding: 22px;
+            }
+
+            .history-stats {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+
+        @media (max-width: 560px) {
+            .history-stats {
+                grid-template-columns: 1fr;
+            }
+
+            .history-section-head,
+            .history-pagination-nav {
+                align-items: stretch;
+                flex-direction: column;
+            }
+
+            .history-page-numbers {
+                justify-content: center;
+            }
+
+            .history-page-arrow {
+                width: 100%;
+            }
+        }
+    </style>
 @endsection

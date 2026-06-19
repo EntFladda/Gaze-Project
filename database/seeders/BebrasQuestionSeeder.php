@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Models\Answer;
 use App\Models\Challenge;
 use App\Models\Question;
+use App\Models\QuestionBlock;
 use App\Models\Section;
 use Illuminate\Database\Seeder;
 
@@ -14,34 +15,16 @@ class BebrasQuestionSeeder extends Seeder
     {
         $this->removeLegacySampleSection();
 
-        $sections = [
-            [
-                'name' => 'Bebras',
-                'order' => 1,
-                'missions' => [
-                    ['title' => 'Misi 1 - Pola dan Urutan', 'questions' => $this->sectionOneMissionOne()],
-                    ['title' => 'Misi 2 - Instruksi dan Algoritma', 'questions' => $this->sectionOneMissionTwo()],
-                    ['title' => 'Misi 3 - Logika dan Informasi', 'questions' => $this->sectionOneMissionThree()],
-                ],
-            ],
-            [
-                'name' => 'Bebras Lanjutan',
-                'order' => 2,
-                'missions' => [
-                    ['title' => 'Misi 1 - Jejak dan Rute', 'questions' => $this->sectionTwoMissionOne()],
-                    ['title' => 'Misi 2 - Data dan Simbol', 'questions' => $this->sectionTwoMissionTwo()],
-                    ['title' => 'Misi 3 - Penyaringan Logika', 'questions' => $this->sectionTwoMissionThree()],
-                ],
-            ],
-        ];
-
+        /** @var array<int, array<string, mixed>> $sections */
+        $sections = require base_path('database/seeders/data/bebras_mission_bank.php');
         $desiredSectionNames = collect($sections)->pluck('name')->all();
 
-        Section::whereNotIn('name', $desiredSectionNames)->get()->each(function ($section) {
-            $section->challenges()->each(function ($challenge) {
+        Section::whereNotIn('name', $desiredSectionNames)->get()->each(function (Section $section): void {
+            $section->challenges()->each(function (Challenge $challenge): void {
                 $challenge->questions()->delete();
                 $challenge->delete();
             });
+
             $section->delete();
         });
 
@@ -58,29 +41,70 @@ class BebrasQuestionSeeder extends Seeder
             Challenge::where('section_id', $section->id)
                 ->whereNotIn('title', $desiredTitles)
                 ->get()
-                ->each(function ($challenge) {
+                ->each(function (Challenge $challenge): void {
                     $challenge->questions()->delete();
                     $challenge->delete();
                 });
 
-            foreach ($sectionData['missions'] as $mission) {
+            foreach ($sectionData['missions'] as $missionData) {
                 $challenge = Challenge::updateOrCreate(
-                    ['section_id' => $section->id, 'title' => $mission['title']],
+                    ['section_id' => $section->id, 'title' => $missionData['title']],
                     ['total_exp' => 0, 'total_score' => 0]
                 );
 
-                foreach ($mission['questions'] as $questionData) {
-                    $question = Question::updateOrCreate(
-                        ['challenge_id' => $challenge->id, 'question_text' => $questionData['question_text']],
-                        collect($questionData)->except('answers')->toArray()
+                $questions = collect($missionData['questions'])
+                    ->map(function (array $questionData): array {
+                        if (! empty($questionData['source_images'])) {
+                            $questionData['question_image'] = $this->prepareQuestionComposite(
+                                (string) ($questionData['source_key'] ?? uniqid('source-', true)),
+                                $questionData['source_images']
+                            );
+                        } elseif (! empty($questionData['question_image'])) {
+                            $questionData['question_image'] = $this->prepareQuestionImage((string) $questionData['question_image']);
+                        }
+
+                        return $questionData;
+                    })
+                    ->all();
+
+                $challenge->questions()->get()->each(function (Question $question): void {
+                    $question->answers()->delete();
+                    $question->delete();
+                });
+
+                foreach ($questions as $questionData) {
+                    $blocks = $questionData['blocks'] ?? [];
+                    unset($questionData['blocks'], $questionData['source_key'], $questionData['source_images']);
+
+                    $question = Question::create(
+                        collect($questionData)->except('answers')->put('challenge_id', $challenge->id)->toArray()
                     );
 
-                    $question->answers()->delete();
+                    foreach ($blocks as $index => $blockData) {
+                        $type = $blockData['type'] ?? null;
+                        if (! in_array($type, ['text', 'image'], true)) {
+                            continue;
+                        }
+
+                        $imagePath = $blockData['image_path'] ?? null;
+                        if ($type === 'image' && $imagePath) {
+                            $imagePath = $this->prepareQuestionImage((string) $imagePath);
+                        }
+
+                        QuestionBlock::create([
+                            'question_id' => $question->id,
+                            'type' => $type,
+                            'content' => $type === 'text' ? ($blockData['content'] ?? null) : null,
+                            'image_path' => $type === 'image' ? $imagePath : null,
+                            'sort_order' => $blockData['sort_order'] ?? ($index + 1),
+                        ]);
+                    }
 
                     foreach ($questionData['answers'] as $answerData) {
                         Answer::create([
                             'question_id' => $question->id,
                             'answer' => $answerData['answer'],
+                            'answer_image' => $answerData['answer_image'] ?? null,
                             'is_correct' => $answerData['is_correct'],
                         ]);
                     }
@@ -91,138 +115,323 @@ class BebrasQuestionSeeder extends Seeder
         }
     }
 
-    protected function q(string $type, string $description, string $question, string $help, string $explanation, int $score, int $exp, array $answers): array
+    protected function ensureMissionVisual(int $sectionOrder, string $missionTitle, array $visual): ?string
     {
-        return [
-            'type' => $type,
-            'description' => $description,
-            'question_text' => $question,
-            'help_text' => $help,
-            'explanation_text' => $explanation,
-            'score' => $score,
-            'exp' => $exp,
-            'answers' => $answers,
-        ];
+        $slug = $visual['slug'] ?? null;
+
+        if (! is_string($slug) || $slug === '') {
+            return null;
+        }
+
+        $relativePath = 'questions/' . $slug . '.svg';
+        $svg = $this->renderMissionVisual(
+            $sectionOrder,
+            $visual['headline'] ?? $missionTitle,
+            $visual['subheadline'] ?? 'Latihan singkat CT',
+            $visual['chips'] ?? []
+        );
+
+        foreach ([
+            public_path('storage/' . $relativePath),
+            storage_path('app/public/' . $relativePath),
+        ] as $path) {
+            $directory = dirname($path);
+
+            if (! is_dir($directory)) {
+                mkdir($directory, 0777, true);
+            }
+
+            file_put_contents($path, $svg);
+        }
+
+        return $relativePath;
     }
 
-    protected function sectionOneMissionOne(): array
+    protected function prepareQuestionImage(string $imagePath): string
     {
-        return [
-            $this->q('multiple_choice', 'Empat beaver ingin menyeberangi jembatan sempit.', 'Beaver A 1 menit, B 2 menit, C 5 menit, D 10 menit. Pasangan mana yang paling tepat diseberangkan lebih dulu?', "Perhatikan dua beaver tercepat.\nMereka biasanya dipakai membawa obor bolak-balik.", 'Strategi efisien biasanya memakai dua beaver tercepat untuk membantu perpindahan obor, jadi pasangan awal paling masuk akal adalah A dan B.', 20, 10, [
-                ['answer' => 'A dan B', 'is_correct' => true],
-                ['answer' => 'A dan C', 'is_correct' => false],
-                ['answer' => 'B dan D', 'is_correct' => false],
-                ['answer' => 'C dan D', 'is_correct' => false],
-            ]),
-            $this->q('multiple_choice', 'Pola daun, bunga, daun, bunga, berulang terus.', 'Jika pola dimulai dari daun pada posisi ke-1, simbol apa yang muncul pada posisi ke-12?', "Cari panjang pola yang berulang.\nLalu cek posisi genap atau ganjil.", 'Pola panjangnya 2. Posisi genap selalu bunga, jadi posisi ke-12 adalah bunga.', 15, 10, [
-                ['answer' => 'Daun', 'is_correct' => false],
-                ['answer' => 'Bunga', 'is_correct' => true],
-                ['answer' => 'Dua daun', 'is_correct' => false],
-                ['answer' => 'Tidak bisa ditentukan', 'is_correct' => false],
-            ]),
-            $this->q('essay', 'Balok disusun dengan pola merah, biru, kuning berulang.', 'Balok ke-9 berwarna apa?', "Pola berulangnya 3 warna.\nKelompokkan posisi ke dalam kelipatan 3.", 'Urutan berulang tiap 3 balok. Posisi ke-9 jatuh pada warna ketiga, yaitu kuning.', 20, 12, [
-                ['answer' => 'kuning', 'is_correct' => true],
-            ]),
-        ];
+        $normalizedPath = str_replace('\\', '/', trim($imagePath));
+
+        if ($normalizedPath === '' || str_starts_with($normalizedPath, 'questions/')) {
+            return $normalizedPath;
+        }
+
+        $extension = pathinfo($normalizedPath, PATHINFO_EXTENSION) ?: 'png';
+        $targetName = $this->buildQuestionImageName($normalizedPath, $extension);
+        $relativePath = 'questions/' . $targetName;
+        $sourcePath = base_path($normalizedPath);
+        if (! file_exists($sourcePath)) {
+            foreach ([
+                public_path('storage/' . $relativePath),
+                storage_path('app/public/' . $relativePath),
+            ] as $targetPath) {
+                if (file_exists($targetPath)) {
+                    return $relativePath;
+                }
+            }
+
+            return $normalizedPath;
+        }
+
+        foreach ([
+            public_path('storage/' . $relativePath),
+            storage_path('app/public/' . $relativePath),
+        ] as $targetPath) {
+            $directory = dirname($targetPath);
+
+            if (! is_dir($directory)) {
+                mkdir($directory, 0777, true);
+            }
+
+            copy($sourcePath, $targetPath);
+        }
+
+        return $relativePath;
     }
 
-    protected function sectionOneMissionTwo(): array
+    protected function prepareQuestionComposite(string $sourceKey, array $sourceImages): ?string
     {
-        return [
-            $this->q('multiple_choice', 'Seekor beaver robot bergerak di petak grid.', 'Instruksi robot: maju 2, kanan, maju 1, kiri, maju 2. Bentuk lintasannya seperti apa?', "Jalankan instruksi satu per satu.\nGambar perubahan arah setelah setiap belokan.", 'Robot bergerak ke atas, ke kanan, lalu ke atas lagi, sehingga lintasannya seperti huruf L.', 20, 10, [
-                ['answer' => 'Garis lurus', 'is_correct' => false],
-                ['answer' => 'Huruf L', 'is_correct' => true],
-                ['answer' => 'Huruf U', 'is_correct' => false],
-                ['answer' => 'Lingkaran', 'is_correct' => false],
-            ]),
-            $this->q('true_false', 'Masalah sering dipecah jadi langkah kecil.', 'Benar atau salah: memecah masalah besar membantu solusi lebih mudah diuji.', "Ingat konsep decomposition.\nMasalah besar dibuat menjadi beberapa bagian kecil.", 'Pernyataan ini benar karena decomposition membuat solusi lebih mudah dianalisis dan diuji.', 15, 8, [
-                ['answer' => 'True', 'is_correct' => true],
-                ['answer' => 'False', 'is_correct' => false],
-            ]),
-            $this->q('multiple_choice', 'Instruksi: ambil kartu paling atas, pindah ke bawah, lalu ambil kartu paling atas berikutnya.', 'Jika urutan awal A, B, C, D, kartu apa yang diambil pada langkah kedua?', "Simulasikan langkah pertama dulu.\nUrutan kartu berubah setelah kartu atas dipindah ke bawah.", 'A dipindah ke bawah sehingga urutan menjadi B, C, D, A. Jadi langkah kedua mengambil B.', 20, 12, [
-                ['answer' => 'A', 'is_correct' => false],
-                ['answer' => 'B', 'is_correct' => true],
-                ['answer' => 'C', 'is_correct' => false],
-                ['answer' => 'D', 'is_correct' => false],
-            ]),
+        $slug = preg_replace('/[^A-Za-z0-9_-]+/', '-', strtolower($sourceKey)) ?: 'source-question';
+        $relativePath = 'questions/source-' . trim($slug, '-') . '.png';
+        $targetPaths = [
+            public_path('storage/' . $relativePath),
+            storage_path('app/public/' . $relativePath),
         ];
+
+        $availableSources = collect($sourceImages)
+            ->filter(fn ($imagePath) => is_string($imagePath) && trim($imagePath) !== '')
+            ->map(fn ($imagePath) => base_path(str_replace('\\', '/', trim((string) $imagePath))))
+            ->filter(fn ($imagePath) => file_exists($imagePath))
+            ->values()
+            ->all();
+
+        if (empty($availableSources)) {
+            foreach ($targetPaths as $targetPath) {
+                if (file_exists($targetPath)) {
+                    return $relativePath;
+                }
+            }
+
+            return null;
+        }
+
+        $images = [];
+        $maxWidth = 0;
+        $totalHeight = 0;
+        $gap = 18;
+        $padding = 18;
+        $maxCanvasImageWidth = 960;
+
+        foreach ($availableSources as $sourcePath) {
+            $resource = $this->loadImageResource($sourcePath);
+            if (! $resource) {
+                continue;
+            }
+
+            $width = imagesx($resource);
+            $height = imagesy($resource);
+            if ($width < 20 || $height < 20) {
+                imagedestroy($resource);
+                continue;
+            }
+
+            if (($width < 120 && $height < 120) || ($height < 70 && $this->isMostlyDark($resource, $width, $height))) {
+                imagedestroy($resource);
+                continue;
+            }
+
+            $targetWidth = min($width, $maxCanvasImageWidth);
+            $targetHeight = max(1, (int) round($height * ($targetWidth / $width)));
+            $images[] = [$resource, $width, $height, $targetWidth, $targetHeight];
+            $maxWidth = max($maxWidth, $targetWidth);
+            $totalHeight += $targetHeight;
+        }
+
+        if (empty($images)) {
+            return null;
+        }
+
+        $canvasWidth = $maxWidth + ($padding * 2);
+        $canvasHeight = $totalHeight + ($padding * 2) + ($gap * (count($images) - 1));
+        $canvas = imagecreatetruecolor($canvasWidth, $canvasHeight);
+        $white = imagecolorallocate($canvas, 255, 255, 255);
+        imagefill($canvas, 0, 0, $white);
+
+        $y = $padding;
+        foreach ($images as [$resource, $width, $height, $targetWidth, $targetHeight]) {
+            $x = (int) floor(($canvasWidth - $targetWidth) / 2);
+            imagecopyresampled($canvas, $resource, $x, $y, 0, 0, $targetWidth, $targetHeight, $width, $height);
+            $y += $targetHeight + $gap;
+            imagedestroy($resource);
+        }
+
+        foreach ($targetPaths as $targetPath) {
+            $directory = dirname($targetPath);
+            if (! is_dir($directory)) {
+                mkdir($directory, 0777, true);
+            }
+
+            imagepng($canvas, $targetPath);
+        }
+
+        imagedestroy($canvas);
+
+        return $relativePath;
     }
 
-    protected function sectionOneMissionThree(): array
+    protected function loadImageResource(string $path)
     {
-        return [
-            $this->q('essay', 'Kue disusun pada kotak 3 x 3 dan hanya satu kotak kosong.', 'Berapa jumlah minimum baris yang perlu dicek untuk memastikan kotak kosong berada di baris terakhir?', "Jangan cek semua kotak.\nPikirkan informasi terbesar yang bisa menghilangkan kemungkinan lain.", 'Jika dua baris pertama penuh, maka kotak kosong pasti di baris terakhir. Jadi cukup cek 2 baris.', 25, 15, [
-                ['answer' => '2', 'is_correct' => true],
-            ]),
-            $this->q('multiple_choice', 'Tiga kotak diberi label 1, 2, dan 3. Hanya satu kotak berisi hadiah.', 'Jika label 1 salah dan label 2 juga salah, hadiah paling logis ada di kotak mana?', "Gunakan eliminasi.\nKalau dua pilihan salah, cek yang tersisa.", 'Karena kotak 1 dan 2 salah, hadiah paling logis ada di kotak 3.', 20, 12, [
-                ['answer' => 'Kotak 1', 'is_correct' => false],
-                ['answer' => 'Kotak 2', 'is_correct' => false],
-                ['answer' => 'Kotak 3', 'is_correct' => true],
-                ['answer' => 'Tidak ada', 'is_correct' => false],
-            ]),
-            $this->q('multiple_choice', 'Pesan rahasia dibentuk dari pola titik dan garis.', 'Jika titik = 1 dan garis = 2, berapa nilai total pola titik-garis-garis-titik?', "Ubah simbol ke angka.\nLalu jumlahkan semuanya.", 'Pola itu bernilai 1 + 2 + 2 + 1 = 6.', 15, 10, [
-                ['answer' => '4', 'is_correct' => false],
-                ['answer' => '5', 'is_correct' => false],
-                ['answer' => '6', 'is_correct' => true],
-                ['answer' => '7', 'is_correct' => false],
-            ]),
-        ];
+        $extension = strtolower(pathinfo($path, PATHINFO_EXTENSION));
+
+        return match ($extension) {
+            'jpg', 'jpeg' => @imagecreatefromjpeg($path),
+            'png' => @imagecreatefrompng($path),
+            'gif' => @imagecreatefromgif($path),
+            'webp' => function_exists('imagecreatefromwebp') ? @imagecreatefromwebp($path) : false,
+            default => false,
+        };
     }
 
-    protected function sectionTwoMissionOne(): array
+    protected function isMostlyDark($resource, int $width, int $height): bool
     {
-        return [
-            $this->q('multiple_choice', 'Beaver berjalan pada grid dan hanya boleh ke kanan atau ke atas.', 'Jika perlu 2 langkah ke kanan dan 2 ke atas, urutan mana yang valid?', "Selama jumlah geraknya pas, urutannya valid.\nPeriksa apakah ada langkah terlarang.", 'Urutan kanan-kanan-atas-atas valid karena memenuhi 2 langkah kanan dan 2 langkah atas.', 20, 12, [
-                ['answer' => 'Kanan, kanan, atas, atas', 'is_correct' => true],
-                ['answer' => 'Kanan, kiri, atas, atas', 'is_correct' => false],
-                ['answer' => 'Atas, bawah, kanan, kanan', 'is_correct' => false],
-                ['answer' => 'Kanan, kanan, kanan, atas', 'is_correct' => false],
-            ]),
-            $this->q('essay', 'Tujuan berada 4 petak lurus di depan tanpa hambatan.', 'Berapa langkah minimum untuk mencapainya?', "Karena tidak ada hambatan, pikirkan jalur terpendek.\nSetiap petak bernilai satu langkah.", 'Jika ada 4 petak di depan dan tidak ada hambatan, maka langkah minimum adalah 4.', 15, 10, [
-                ['answer' => '4', 'is_correct' => true],
-            ]),
-            $this->q('true_false', 'Jika semua langkah punya biaya sama, jalur terpendek biasanya paling efisien.', 'Benar atau salah: jalur dengan langkah paling sedikit adalah pilihan paling efisien.', "Bandingkan jumlah langkah dengan biaya total.\nKalau biayanya sama, total biaya ikut jumlah langkah.", 'Pernyataan ini benar karena biaya total menjadi minimum saat jumlah langkah minimum.', 15, 8, [
-                ['answer' => 'True', 'is_correct' => true],
-                ['answer' => 'False', 'is_correct' => false],
-            ]),
-        ];
+        $samples = 0;
+        $darkSamples = 0;
+        $stepX = max(1, (int) floor($width / 24));
+        $stepY = max(1, (int) floor($height / 24));
+
+        for ($y = 0; $y < $height; $y += $stepY) {
+            for ($x = 0; $x < $width; $x += $stepX) {
+                $rgb = imagecolorat($resource, $x, $y);
+                $red = ($rgb >> 16) & 0xFF;
+                $green = ($rgb >> 8) & 0xFF;
+                $blue = $rgb & 0xFF;
+                $samples++;
+
+                if (($red + $green + $blue) < 105) {
+                    $darkSamples++;
+                }
+            }
+        }
+
+        return $samples > 0 && ($darkSamples / $samples) > 0.48;
     }
 
-    protected function sectionTwoMissionTwo(): array
+    protected function buildQuestionImageName(string $normalizedPath, string $extension): string
     {
-        return [
-            $this->q('multiple_choice', 'Setiap simbol punya nilai: lingkaran = 2, segitiga = 3, persegi = 4.', 'Berapa total nilai lingkaran, segitiga, persegi?', "Ganti simbol jadi angka.\nSetelah itu jumlahkan.", 'Nilainya adalah 2 + 3 + 4 = 9.', 15, 10, [
-                ['answer' => '7', 'is_correct' => false],
-                ['answer' => '8', 'is_correct' => false],
-                ['answer' => '9', 'is_correct' => true],
-                ['answer' => '10', 'is_correct' => false],
-            ]),
-            $this->q('multiple_choice', 'Kode menggunakan aturan A = 1, B = 2, C = 3.', 'Berapa nilai total kode CAB?', "Ubah setiap huruf jadi angka.\nKemudian jumlahkan.", 'C = 3, A = 1, B = 2, jadi totalnya 6.', 20, 12, [
-                ['answer' => '5', 'is_correct' => false],
-                ['answer' => '6', 'is_correct' => true],
-                ['answer' => '7', 'is_correct' => false],
-                ['answer' => '8', 'is_correct' => false],
-            ]),
-            $this->q('essay', 'Data disimpan dalam kotak, masing-masing 5 benda per kotak.', 'Jika ada 15 benda, berapa kotak penuh yang terbentuk?', "Pikirkan pembagian ke dalam kelompok.\nSetiap kotak memuat 5 benda.", 'Lima belas benda dibagi 5 benda per kotak menghasilkan 3 kotak penuh.', 20, 12, [
-                ['answer' => '3', 'is_correct' => true],
-            ]),
-        ];
+        $filename = preg_replace('/[^A-Za-z0-9_-]+/', '-', pathinfo($normalizedPath, PATHINFO_FILENAME)) ?: 'question-image';
+        $directory = preg_replace('/[^A-Za-z0-9_-]+/', '-', dirname($normalizedPath));
+        $directory = trim((string) $directory, '-.');
+
+        if ($directory === '' || $directory === '.') {
+            return $filename . '.' . $extension;
+        }
+
+        return $directory . '-' . $filename . '.' . $extension;
     }
 
-    protected function sectionTwoMissionThree(): array
+    protected function renderMissionVisual(
+        int $sectionOrder,
+        string $headline,
+        string $subheadline,
+        array $chips
+    ): string {
+        [$start, $end, $accent] = $this->paletteForSection($sectionOrder);
+        $headlineLines = $this->wrapSvgText($headline, 28);
+        $subheadlineLines = $this->wrapSvgText($subheadline, 42);
+        $chipMarkup = '';
+        $chipY = 208;
+
+        foreach (array_slice($chips, 0, 4) as $index => $chip) {
+            $x = 48 + ($index % 2) * 232;
+            $y = $chipY + intdiv($index, 2) * 44;
+            $chipMarkup .= sprintf(
+                '<rect x="%d" y="%d" width="192" height="30" rx="15" fill="rgba(255,255,255,0.16)" />',
+                $x,
+                $y
+            );
+            $chipMarkup .= sprintf(
+                '<text x="%d" y="%d" fill="#F8FAFC" font-size="14" font-family="Arial, sans-serif">%s</text>',
+                $x + 18,
+                $y + 20,
+                $this->escapeSvg((string) $chip)
+            );
+        }
+
+        $headlineMarkup = '';
+        foreach ($headlineLines as $index => $line) {
+            $headlineMarkup .= sprintf(
+                '<text x="48" y="%d" fill="#FFFFFF" font-size="28" font-weight="700" font-family="Arial, sans-serif">%s</text>',
+                88 + ($index * 34),
+                $this->escapeSvg($line)
+            );
+        }
+
+        $subheadlineMarkup = '';
+        foreach ($subheadlineLines as $index => $line) {
+            $subheadlineMarkup .= sprintf(
+                '<text x="48" y="%d" fill="#E2E8F0" font-size="16" font-family="Arial, sans-serif">%s</text>',
+                150 + ($index * 22),
+                $this->escapeSvg($line)
+            );
+        }
+
+        return <<<SVG
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="360" viewBox="0 0 640 360" role="img" aria-label="Visual mission">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="{$start}" />
+      <stop offset="100%" stop-color="{$end}" />
+    </linearGradient>
+  </defs>
+  <rect width="640" height="360" rx="28" fill="url(#bg)" />
+  <circle cx="560" cy="76" r="52" fill="rgba(255,255,255,0.10)" />
+  <circle cx="512" cy="126" r="22" fill="rgba(255,255,255,0.14)" />
+  <rect x="36" y="34" width="568" height="292" rx="24" fill="rgba(15,23,42,0.18)" stroke="rgba(255,255,255,0.14)" />
+  <rect x="48" y="48" width="132" height="28" rx="14" fill="{$accent}" />
+  <text x="67" y="67" fill="#082F49" font-size="13" font-weight="700" font-family="Arial, sans-serif">Latihan CT</text>
+  {$headlineMarkup}
+  {$subheadlineMarkup}
+  {$chipMarkup}
+  <path d="M468 250 C520 220, 558 220, 604 262" fill="none" stroke="rgba(255,255,255,0.22)" stroke-width="8" stroke-linecap="round" />
+  <circle cx="468" cy="250" r="12" fill="#FFFFFF" fill-opacity="0.92" />
+  <circle cx="536" cy="230" r="12" fill="#FFFFFF" fill-opacity="0.82" />
+  <circle cx="604" cy="262" r="12" fill="#FFFFFF" fill-opacity="0.72" />
+  <text x="467" y="312" fill="#E2E8F0" font-size="13" font-family="Arial, sans-serif">naik level</text>
+</svg>
+SVG;
+    }
+
+    protected function paletteForSection(int $sectionOrder): array
     {
-        return [
-            $this->q('multiple_choice', 'Ada 4 kartu, hanya satu yang memenuhi aturan.', 'Jika kartu merah, bulat, dan besar ditolak, kartu mana yang paling mungkin dipilih?', "Gunakan eliminasi berdasarkan sifat yang ditolak.\nCari yang tidak punya ciri terlarang.", 'Jika merah, bulat, dan besar ditolak, maka kartu biru kecil menjadi pilihan yang paling logis.', 20, 12, [
-                ['answer' => 'Kartu biru kecil', 'is_correct' => true],
-                ['answer' => 'Kartu merah kecil', 'is_correct' => false],
-                ['answer' => 'Kartu biru besar', 'is_correct' => false],
-                ['answer' => 'Kartu bulat kecil', 'is_correct' => false],
-            ]),
-            $this->q('true_false', 'Filtering dipakai untuk menyaring data yang sesuai aturan.', 'Benar atau salah: filtering membantu mempersempit pilihan sebelum mengambil keputusan.', "Ingat tujuan filtering.\nFiltering membuang data yang tidak relevan.", 'Pernyataan ini benar karena filtering membantu fokus pada pilihan yang memenuhi syarat.', 15, 8, [
-                ['answer' => 'True', 'is_correct' => true],
-                ['answer' => 'False', 'is_correct' => false],
-            ]),
+        $palettes = [
+            1 => ['#0F172A', '#1D4ED8', '#FDE68A'],
+            2 => ['#0B3B53', '#0891B2', '#A7F3D0'],
+            3 => ['#102A43', '#7C3AED', '#C4B5FD'],
+            4 => ['#1E293B', '#2563EB', '#93C5FD'],
+            5 => ['#1F2937', '#0F766E', '#99F6E4'],
+            6 => ['#3F1D2E', '#BE185D', '#FBCFE8'],
+            7 => ['#3B0764', '#9333EA', '#F5D0FE'],
         ];
+
+        return $palettes[$sectionOrder] ?? ['#0F172A', '#334155', '#BAE6FD'];
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    protected function wrapSvgText(string $text, int $lineLength): array
+    {
+        $text = trim(preg_replace('/\s+/', ' ', $text) ?? $text);
+
+        if ($text === '') {
+            return [];
+        }
+
+        return preg_split('/\n/', wordwrap($text, $lineLength, "\n", true)) ?: [$text];
+    }
+
+    protected function escapeSvg(string $value): string
+    {
+        return htmlspecialchars($value, ENT_QUOTES | ENT_XML1, 'UTF-8');
     }
 
     protected function removeLegacySampleSection(): void
@@ -233,7 +442,7 @@ class BebrasQuestionSeeder extends Seeder
             return;
         }
 
-        $legacySection->challenges()->each(function ($challenge) {
+        $legacySection->challenges()->each(function (Challenge $challenge): void {
             $challenge->questions()->delete();
             $challenge->delete();
         });

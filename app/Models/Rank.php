@@ -9,7 +9,7 @@ class Rank extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['name','min_exp','max_exp','icon'];
+    protected $fillable = ['name','min_exp','max_exp'];
     public function students()
     {
         return $this->belongsToMany(Student::class, 'student_rank','rank_id','student_id')->withTimestamps();

@@ -17,7 +17,7 @@ class StudentReviewController extends Controller
             ->where('attempt_number', $attempt_number)
             ->firstOrFail();
 
-        $answers = StudentAnswer::with(['question.answers', 'selectedAnswer'])
+        $answers = StudentAnswer::with(['question.answers', 'question.blocks', 'question.explanationImages', 'question.explanationBlocks', 'selectedAnswer'])
             ->where('user_id', $user->id)
             ->where('challenge_id', $challenge_id)
             ->where('attempt_number', $attempt_number)

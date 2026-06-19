@@ -16,7 +16,7 @@ class UserSeeder extends Seeder
         $users = [
             [
                 'name' => 'Admin',
-                'profile_photo' => 'profile_photos/default.webp',
+                'profile_photo' => 'profile_photos/default-3d.svg',
                 'email' => 'admin@ct.com',
                 'email_verified_at' => now(),
                 'password' => Hash::make('password'),
@@ -24,7 +24,7 @@ class UserSeeder extends Seeder
             ],
             [
                 'name' => 'Lecturer One',
-                'profile_photo' => 'profile_photos/default.webp',
+                'profile_photo' => 'profile_photos/default-3d.svg',
                 'email' => 'lecturer1@ct.com',
                 'email_verified_at' => now(),
                 'password' => Hash::make('password'),
@@ -32,7 +32,7 @@ class UserSeeder extends Seeder
             ],
             [
                 'name' => 'Lecturer Two',
-                'profile_photo' => 'profile_photos/default.webp',
+                'profile_photo' => 'profile_photos/default-3d.svg',
                 'email' => 'lecturer2@ct.com',
                 'email_verified_at' => now(),
                 'password' => Hash::make('password'),

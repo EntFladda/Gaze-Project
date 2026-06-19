@@ -22,11 +22,13 @@ class StudentAnswer extends Model
         'is_correct',
         'used_help',
         'help_requested_at',
+        'wrong_attempts',
     ];
 
     protected $casts = [
         'used_help' => 'boolean',
         'help_requested_at' => 'datetime',
+        'wrong_attempts' => 'integer',
     ];
 
     public function user()

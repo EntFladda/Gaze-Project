@@ -65,15 +65,15 @@
         display: flex;
         flex-direction: column;
         justify-content: space-between;
-        background: linear-gradient(180deg, #5a1430 0%, #7b1f45 55%, #391021 100%);
-        border-right: 4px solid #4a0d22;
+        background: linear-gradient(180deg, #0A2342 0%, #123A68 55%, #071426 100%);
+        border-right: 4px solid #1D5FD6;
         box-shadow: 0 20px 60px rgba(0, 0, 0, 0.45);
         transition: width 0.3s ease;
         overflow-x: hidden;
         overflow-y: auto;
         z-index: 60;
         scrollbar-width: thin;
-        scrollbar-color: rgba(255, 228, 236, 0.28) transparent;
+        scrollbar-color: rgba(183, 204, 230, 0.28) transparent;
     }
 
     .lecturer-sidebar.is-collapsed {
@@ -128,14 +128,14 @@
         font-size: 11px;
         letter-spacing: 0.32em;
         text-transform: uppercase;
-        color: rgba(255, 228, 236, 0.7);
+        color: rgba(183, 204, 230, 0.7);
     }
 
     .lecturer-sidebar-copy {
         margin: 10px 0 0;
         font-size: 14px;
         line-height: 1.6;
-        color: rgba(255, 240, 244, 0.78);
+        color: rgba(220, 231, 243, 0.78);
     }
 
     .lecturer-sidebar-nav {
@@ -162,7 +162,7 @@
 
     .lecturer-nav-link:hover,
     .lecturer-nav-link.is-active {
-        background: rgba(219, 39, 119, 0.34);
+        background: rgba(29, 95, 214, 0.34);
         box-shadow: 0 14px 28px rgba(91, 16, 33, 0.28);
     }
 
@@ -195,17 +195,17 @@
     }
 
     .lecturer-sidebar::-webkit-scrollbar-thumb {
-        background: rgba(255, 228, 236, 0.22);
+        background: rgba(183, 204, 230, 0.22);
         border-radius: 999px;
     }
 
     .lecturer-sidebar::-webkit-scrollbar-thumb:hover {
-        background: rgba(255, 228, 236, 0.35);
+        background: rgba(183, 204, 230, 0.35);
     }
 
     .lecturer-logout-link {
         border: 0;
-        background: #db2777;
+        background: #1D5FD6;
         cursor: pointer;
     }
 

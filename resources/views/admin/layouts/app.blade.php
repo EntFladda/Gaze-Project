@@ -9,28 +9,28 @@
     <link rel="icon" type="image/png" href="{{ asset('favicon-ctg.png') }}">
     <style>
         :root {
-            --admin-shell: linear-gradient(135deg, #3f0a1c 0%, #5b1731 42%, #691b39 100%);
-            --admin-panel: rgba(83, 20, 43, .9);
-            --admin-panel-soft: rgba(112, 39, 67, .76);
-            --admin-border: rgba(255, 228, 236, .14);
-            --admin-text: #fff7fb;
-            --admin-muted: rgba(255, 236, 242, .72);
-            --admin-accent: linear-gradient(90deg, #c0265f, #ec4899);
-            --admin-card: #fffafc;
-            --admin-ink: #1f2937;
+            --admin-shell: linear-gradient(135deg, #071426 0%, #0A2342 42%, #0F2F57 100%);
+            --admin-panel: rgba(10, 35, 66, .9);
+            --admin-panel-soft: rgba(15, 47, 87, .76);
+            --admin-border: rgba(183, 204, 230, .14);
+            --admin-text: #F4F8FC;
+            --admin-muted: rgba(220, 231, 243, .72);
+            --admin-accent: linear-gradient(90deg, #1D5FD6, #2BA7D8);
+            --admin-card: #F4F8FC;
+            --admin-ink: #09254A;
         }
 
         * { box-sizing: border-box; }
         html, body { margin: 0; min-height: 100%; font-family: 'Poppins', 'Segoe UI', sans-serif; background: var(--admin-shell); color: var(--admin-text); }
         body { overflow-x: hidden; }
         .admin-shell { min-height: 100vh; background: var(--admin-shell); }
-        .admin-sidebar { position: fixed; inset: 0 auto 0 0; width: 320px; background: linear-gradient(180deg, rgba(92,18,45,.96), rgba(73,16,37,.98)); border-right: 1px solid var(--admin-border); display: flex; flex-direction: column; z-index: 60; transition: width .25s ease, transform .25s ease; }
+        .admin-sidebar { position: fixed; inset: 0 auto 0 0; width: 320px; background: linear-gradient(180deg, rgba(10,35,66,.96), rgba(7,20,38,.98)); border-right: 1px solid var(--admin-border); display: flex; flex-direction: column; z-index: 60; transition: width .25s ease, transform .25s ease; }
         .admin-sidebar.collapsed { width: 92px; }
         .admin-sidebar.scrolled { overflow-y: auto; overflow-x: hidden; }
         .admin-main { margin-left: 320px; min-height: 100vh; transition: margin-left .25s ease; }
         .admin-main.expanded { margin-left: 92px; }
         .admin-main-inner { padding: 32px; }
-        .admin-surface { background: rgba(92, 22, 47, .58); border: 1px solid var(--admin-border); box-shadow: 0 24px 60px rgba(0,0,0,.18); }
+        .admin-surface { background: rgba(10, 35, 66, .58); border: 1px solid var(--admin-border); box-shadow: 0 24px 60px rgba(0,0,0,.18); }
         .admin-card-white { background: var(--admin-card); color: var(--admin-ink); box-shadow: 0 24px 60px rgba(0,0,0,.12); }
         .admin-scrollbar::-webkit-scrollbar { width: 8px; }
         .admin-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,.18); border-radius: 999px; }
@@ -86,6 +86,13 @@
             if (sidebar.contains(event.target) || (toggle && toggle.contains(event.target))) return;
             sidebar.classList.remove('open');
         });
+
+        document.addEventListener('error', function(event) {
+            const image = event.target;
+            if (image?.tagName === 'IMG' && image.src.includes('/storage/profile_photos/')) {
+                image.src = "{{ asset('storage/profile_photos/default-3d.svg') }}";
+            }
+        }, true);
     </script>
 </body>
 

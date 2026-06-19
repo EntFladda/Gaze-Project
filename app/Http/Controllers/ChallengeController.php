@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Challenge;
 use Illuminate\Http\Request;
 use App\Models\Section;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 class ChallengeController extends Controller
 {
@@ -14,13 +15,18 @@ class ChallengeController extends Controller
 
         $sectionSearch = $request->input('section_id');
 
-        $challenges = Challenge::with(['section'])->withCount('questions')
+        /** @var LengthAwarePaginator $challenges */
+        $challenges = Challenge::with(['section'])
             ->when($sectionSearch, function ($query, $sectionSearch) {
                 return $query->where('section_id', $sectionSearch);
             })
-            ->orderBy('section_id')
-            ->orderBy('id')
-            ->paginate(10);
+            ->leftJoin('sections', 'challenges.section_id', '=', 'sections.id')
+            ->orderBy('sections.order')
+            ->orderBy('challenges.id')
+            ->select('challenges.*')
+            ->withCount('questions')
+            ->paginate(5);
+        $challenges->withQueryString();
 
         return view('lecturer.challenges.index', compact('challenges', 'sections', 'sectionSearch'));
     }
@@ -40,6 +46,9 @@ class ChallengeController extends Controller
         $request->validate([
             'section_id' => 'required|exists:sections,id',
             'title' => 'required|string|max:255',
+        ], [], [
+            'section_id' => 'bagian materi',
+            'title' => 'judul mission',
         ]);
 
         Challenge::create([
@@ -49,19 +58,19 @@ class ChallengeController extends Controller
             'total_score' => 0,
         ]);
 
-        return redirect()->route('lecturer.challenges.index')->with('success', 'Challenge berhasil dibuat.');
+        return redirect()->route('lecturer.challenges.index')->with('success', 'Mission berhasil dibuat.');
     }
 
 
     public function show(Challenge $challenge)
     {
-        return view('lecturer.challenges.show', compact('challenge'));
+        return redirect()->route('lecturer.challenges.edit', $challenge);
     }
 
     public function edit($id)
     {
         $challenge = Challenge::findOrFail($id);
-        $sections = Section::orderBy('order', 'asc')->get(); // Ambil semua section untuk dropdown
+        $sections = Section::orderBy('order', 'asc')->get();
         return view('lecturer.challenges.edit', compact('challenge', 'sections'));
     }
 
@@ -70,6 +79,9 @@ class ChallengeController extends Controller
         $request->validate([
             'section_id' => 'required|exists:sections,id',
             'title' => 'required|string|max:255',
+        ], [], [
+            'section_id' => 'bagian materi',
+            'title' => 'judul mission',
         ]);
 
         $challenge = Challenge::findOrFail($id);
@@ -78,7 +90,7 @@ class ChallengeController extends Controller
             'title' => trim($request->title),
         ]);
 
-        return redirect()->route('lecturer.challenges.index')->with('success', 'Challenge berhasil diperbarui.');
+        return redirect()->route('lecturer.challenges.index')->with('success', 'Mission berhasil diperbarui.');
     }
 
 
@@ -86,14 +98,14 @@ class ChallengeController extends Controller
     {
         try {
             $challenge = Challenge::findOrFail($id);
-            $title = $challenge->title; // Simpan judul challenge sebelum dihapus
+            $title = $challenge->title;
             $challenge->delete();
 
             return redirect()->route('lecturer.challenges.index')
-                ->with('success', "Challenge {$title} berhasil dihapus.");
+                ->with('success', "Mission {$title} berhasil dihapus.");
         } catch (\Exception $e) {
             return redirect()->route('lecturer.challenges.index')
-                ->with('error', 'Challenge tidak bisa dihapus. Pastikan tidak ada data soal atau hasil yang masih terhubung.');
+                ->with('error', 'Mission tidak bisa dihapus. Pastikan tidak ada soal atau hasil pengerjaan yang masih terhubung.');
         }
     }
 }

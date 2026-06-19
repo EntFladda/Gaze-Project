@@ -1,7 +1,7 @@
 <div id="sidebar"
-    class="w-24 md:w-64 bg-gradient-to-b from-[#5a1430] via-[#7b1f45] to-[#391021] text-white h-screen fixed left-0 top-0 transition-all duration-500 flex flex-col shadow-2xl border-r-4 border-rose-900 glow-sidebar overflow-hidden">
+    class="w-24 md:w-64 bg-gradient-to-b from-[#0A2342] via-[#0A2342] to-[#071426] text-white h-screen fixed left-0 top-0 transition-all duration-500 flex flex-col shadow-2xl border-r border-white/10 glow-sidebar overflow-hidden">
 
-    <div class="flex items-center justify-center md:justify-between px-3 md:px-6 py-5 border-b border-rose-300/25 shadow-md gap-3">
+    <div class="flex items-center justify-center md:justify-between px-3 md:px-6 py-5 border-b border-white/10 shadow-md gap-3">
         <h2 id="sidebar-logo"
             class="text-2xl font-bold transition-all duration-300 tracking-wider flex items-center min-w-0">
             <img src="{{ asset('favicon-ctg.png') }}" alt="Logo" class="w-10 h-10 shrink-0 md:mr-3">
@@ -19,23 +19,24 @@
 
     <nav class="mt-6 flex-1 space-y-2">
         <a href="{{ route('student.profile.index') }}"
-            class="sidebar-link flex items-center justify-center md:justify-start px-3 md:px-6 py-3 bg-transparent hover:bg-pink-700/45 rounded-md mx-3 md:mx-4 transition-all duration-300 shadow-lg hover:shadow-pink-900 hover-sfx"
+            data-guide="profile"
+            class="sidebar-link flex items-center justify-center md:justify-start px-3 md:px-6 py-3 bg-transparent hover:bg-white/8 rounded-md mx-3 md:mx-4 transition-all duration-300 shadow-lg hover:shadow-black/20 hover-sfx"
             onclick="playClick()">
             <span
-                class="sidebar-badge mr-0 md:mr-3 flex h-9 w-9 items-center justify-center rounded-xl bg-white/10 text-xs font-bold uppercase tracking-[0.18em] glow-icon shrink-0">PF</span>
-            <span class="sidebar-text transition-all duration-300 font-semibold whitespace-nowrap">Profile</span>
+                class="sidebar-badge mr-0 md:mr-3 flex h-9 w-9 items-center justify-center rounded-xl bg-white/10 text-xs font-bold uppercase tracking-[0.18em] glow-icon shrink-0">DB</span>
+            <span class="sidebar-text transition-all duration-300 font-semibold whitespace-nowrap">Dashboard</span>
         </a>
-
-        <a href="{{ route('student.mission.index') }}"
-            class="sidebar-link flex items-center justify-center md:justify-start px-3 md:px-6 py-3 bg-transparent hover:bg-pink-700/45 rounded-md mx-3 md:mx-4 transition-all duration-300 shadow-lg hover:shadow-pink-900 hover-sfx"
+<a href="{{ route('student.mission.index') }}"
+            data-guide="mission"
+            class="sidebar-link flex items-center justify-center md:justify-start px-3 md:px-6 py-3 bg-transparent hover:bg-white/8 rounded-md mx-3 md:mx-4 transition-all duration-300 shadow-lg hover:shadow-black/20 hover-sfx"
             onclick="playClick()">
             <span
                 class="sidebar-badge mr-0 md:mr-3 flex h-9 w-9 items-center justify-center rounded-xl bg-white/10 text-xs font-bold uppercase tracking-[0.18em] glow-icon shrink-0">MS</span>
             <span class="sidebar-text transition-all duration-300 font-semibold whitespace-nowrap">Missions</span>
         </a>
-
-        <a href="{{ route('student.history.index') }}"
-            class="sidebar-link flex items-center justify-center md:justify-start px-3 md:px-6 py-3 bg-transparent hover:bg-pink-700/45 rounded-md mx-3 md:mx-4 transition-all duration-300 shadow-lg hover:shadow-pink-900 hover-sfx"
+<a href="{{ route('student.history.index') }}"
+            data-guide="history"
+            class="sidebar-link flex items-center justify-center md:justify-start px-3 md:px-6 py-3 bg-transparent hover:bg-white/8 rounded-md mx-3 md:mx-4 transition-all duration-300 shadow-lg hover:shadow-black/20 hover-sfx"
             onclick="playClick()">
             <span
                 class="sidebar-badge mr-0 md:mr-3 flex h-9 w-9 items-center justify-center rounded-xl bg-white/10 text-xs font-bold uppercase tracking-[0.18em] glow-icon shrink-0">RH</span>
@@ -43,7 +44,8 @@
         </a>
 
         <a href="{{ route('student.tutorial.index') }}"
-            class="sidebar-link flex items-center justify-center md:justify-start px-3 md:px-6 py-3 bg-transparent hover:bg-pink-700/45 rounded-md mx-3 md:mx-4 transition-all duration-300 shadow-lg hover:shadow-pink-900 hover-sfx"
+            data-guide="tutorial"
+            class="sidebar-link flex items-center justify-center md:justify-start px-3 md:px-6 py-3 bg-transparent hover:bg-white/8 rounded-md mx-3 md:mx-4 transition-all duration-300 shadow-lg hover:shadow-black/20 hover-sfx"
             onclick="playClick()">
             <span
                 class="sidebar-badge mr-0 md:mr-3 flex h-9 w-9 items-center justify-center rounded-xl bg-white/10 text-xs font-bold uppercase tracking-[0.18em] glow-icon shrink-0">TD</span>
@@ -51,11 +53,11 @@
         </a>
     </nav>
 
-    <div class="px-3 md:px-6 py-4 border-t border-rose-300/25">
+    <div class="px-3 md:px-6 py-4 border-t border-white/10">
         <form action="{{ route('logout') }}" method="POST">
             @csrf
             <button id="logout-button" type="submit"
-                class="w-full flex items-center justify-center md:justify-start bg-pink-600 hover:bg-pink-500 px-3 md:px-4 py-2 rounded transition-all duration-300 shadow-md hover:shadow-pink-900">
+                class="w-full flex items-center justify-center md:justify-start bg-[#1D5FD6] hover:bg-[#1D5FD6] px-3 md:px-4 py-2 rounded transition-all duration-300 shadow-md hover:shadow-black/25">
                 <span
                     class="sidebar-badge mr-0 md:mr-3 flex h-9 w-9 items-center justify-center rounded-xl bg-white/10 text-xs font-bold uppercase tracking-[0.18em] glow-icon shrink-0">EX</span>
                 <span class="sidebar-text transition-all duration-300 font-semibold whitespace-nowrap">Logout</span>
@@ -70,7 +72,7 @@
 
 <style>
     .glow-sidebar {
-        box-shadow: 0px 0px 24px rgba(236, 72, 153, 0.22);
+        box-shadow: 18px 0 36px rgba(8, 4, 8, 0.18);
     }
 
     .glow-icon {
@@ -78,7 +80,7 @@
     }
 
     .glow-icon:hover {
-        text-shadow: 0px 0px 10px rgba(255, 255, 255, 0.8);
+        text-shadow: 0px 0px 8px rgba(255, 255, 255, 0.45);
     }
 </style>
 

@@ -33,7 +33,7 @@ class StudentSeeder extends Seeder
                 [
                     'name' => $row['name'],
                     'email' => $row['email'],
-                    'profile_photo' => 'profile_photos/default.webp',
+                    'profile_photo' => 'profile_photos/default-3d.svg',
                     'password' => Hash::make($row['nim']),
                     'email_verified_at' => now(),
                 ]

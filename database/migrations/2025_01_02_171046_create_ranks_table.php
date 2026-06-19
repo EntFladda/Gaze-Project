@@ -16,7 +16,6 @@ return new class extends Migration
             $table->string('name');
             $table->integer('min_exp');
             $table->integer('max_exp');
-            $table->string('icon')->nullable();
             $table->timestamps();
         });
     }

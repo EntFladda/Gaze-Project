@@ -20,9 +20,16 @@ class Student extends Model
         'class',
         'streak',
         'exp',
-        'lives',
         'weekly_score',
         'total_score',
+    ];
+
+    protected $casts = [
+        'streak' => 'integer',
+        'exp' => 'integer',
+        'weekly_score' => 'integer',
+        'total_score' => 'integer',
+        'semester' => 'integer',
     ];
 
     public function user()
@@ -37,8 +44,14 @@ class Student extends Model
 
     public function updateRank()
     {
-        $newRank = Rank::where('min_exp', '<=', $this->exp)
-            ->where('max_exp', '>=', $this->exp)
+        $exp = (int) ($this->exp ?? 0);
+
+        if ($this->exp === null) {
+            $this->forceFill(['exp' => $exp])->saveQuietly();
+        }
+
+        $newRank = Rank::where('min_exp', '<=', $exp)
+            ->where('max_exp', '>=', $exp)
             ->orderBy('min_exp', 'desc')
             ->first();
 
@@ -51,21 +64,16 @@ class Student extends Model
         }
 
         $latestRank = $this->ranks()->orderByDesc('ranks.min_exp')->first();
+        $rankChanged = ! $latestRank || $latestRank->id !== $newRank->id;
 
-        if (!$latestRank || $latestRank->id !== $newRank->id) {
-            if (!$this->ranks->contains($newRank->id)) {
-                $this->ranks()->attach($newRank->id, ['received_at' => now()]);
-            }
+        $this->ranks()->sync([
+            $newRank->id => ['received_at' => $rankChanged ? now() : ($latestRank?->pivot?->received_at ?? now())],
+        ]);
 
-            return [
-                'rank_changed' => true,
-                'previous_rank_id' => $latestRank?->id,
-                'new_rank_id' => $newRank->id
-            ];
-        }
+        $this->unsetRelation('ranks');
 
         return [
-            'rank_changed' => false,
+            'rank_changed' => $rankChanged,
             'previous_rank_id' => $latestRank?->id,
             'new_rank_id' => $newRank->id
         ];
@@ -73,7 +81,12 @@ class Student extends Model
 
     public function getCurrentRankAttribute()
     {
-        return $this->ranks->sortByDesc('min_exp')->first();
+        $exp = (int) ($this->exp ?? 0);
+
+        return Rank::where('min_exp', '<=', $exp)
+            ->where('max_exp', '>=', $exp)
+            ->orderByDesc('min_exp')
+            ->first();
     }
 
     public function currentSection()
@@ -89,12 +102,12 @@ class Student extends Model
 
     public function answers()
     {
-        return $this->hasMany(StudentAnswer::class, 'user_id');
+        return $this->hasMany(StudentAnswer::class, 'user_id', 'user_id');
     }
 
     public function challengeResults()
     {
-        return $this->hasMany(ChallengeResult::class, 'user_id');
+        return $this->hasMany(ChallengeResult::class, 'user_id', 'user_id');
     }
 
     public function currentChallenge()

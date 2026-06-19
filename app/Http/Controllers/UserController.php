@@ -14,10 +14,20 @@ class UserController extends Controller
     public function index(Request $request)
     {
         $perPage = $request->query('perPage', 10);
+        $roleFilter = $request->query('role', 'all');
+        $userStats = [
+            'total' => User::count(),
+            'lecturers' => User::role('lecturer')->count(),
+            'students' => User::role('student')->count(),
+        ];
+        $adminCount = User::role('admin')->count();
 
         $users = User::with(['roles', 'student'])
             ->leftJoin('model_has_roles', 'users.id', '=', 'model_has_roles.model_id')
             ->leftJoin('roles', 'model_has_roles.role_id', '=', 'roles.id')
+            ->when(in_array($roleFilter, ['admin', 'lecturer', 'student'], true), function ($query) use ($roleFilter) {
+                $query->where('roles.name', $roleFilter);
+            })
             ->orderByRaw("
                 CASE
                     WHEN roles.name = 'admin' THEN 1
@@ -28,9 +38,9 @@ class UserController extends Controller
             ")
             ->select('users.*')
             ->paginate($perPage === 'all' ? User::count() : (int) $perPage)
-            ->appends($request->query());
+            ->withQueryString();
 
-        return view('admin.users.index', compact('users', 'perPage'));
+        return view('admin.users.index', compact('users', 'perPage', 'userStats', 'roleFilter', 'adminCount'));
     }
 
     public function show($id)
@@ -54,7 +64,7 @@ class UserController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email',
             'profile_photo' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
-            'password' => 'required|string|min:8|confirmed',
+            'password' => 'required_unless:role,student|nullable|string|min:6|confirmed',
             'role' => 'required|in:admin,lecturer,student',
             'nim' => 'required_if:role,student|nullable|string|unique:students,nim',
             'address' => 'required_if:role,student|nullable|string|max:255',
@@ -75,7 +85,7 @@ class UserController extends Controller
         $user = User::create([
             'name' => trim($request->name),
             'email' => $request->email,
-            'password' => Hash::make($request->password),
+            'password' => Hash::make($request->filled('password') ? $request->password : $request->nim),
             'profile_photo' => $profilePhotoPath,
         ]);
 
@@ -93,6 +103,10 @@ class UserController extends Controller
                 'prodi' => $request->prodi,
                 'semester' => $request->semester,
                 'class' => $request->class,
+                'streak' => 0,
+                'exp' => 0,
+                'weekly_score' => 0,
+                'total_score' => 0,
             ]);
 
             $student->load('ranks');
@@ -132,12 +146,12 @@ class UserController extends Controller
         }
 
         if ($request->delete_photo === '1') {
-            if ($user->profile_photo && $user->profile_photo !== 'profile_photos/default.webp') {
+            if ($user->profile_photo && $user->profile_photo !== 'profile_photos/default-3d.svg') {
                 Storage::disk('public')->delete($user->profile_photo);
             }
-            $user->update(['profile_photo' => 'profile_photos/default.webp']);
+            $user->update(['profile_photo' => 'profile_photos/default-3d.svg']);
         } elseif ($request->hasFile('profile_photo')) {
-            if ($user->profile_photo && Storage::disk('public')->exists($user->profile_photo) && $user->profile_photo !== 'profile_photos/default.webp') {
+            if ($user->profile_photo && Storage::disk('public')->exists($user->profile_photo) && $user->profile_photo !== 'profile_photos/default-3d.svg') {
                 Storage::disk('public')->delete($user->profile_photo);
             }
 
@@ -182,6 +196,11 @@ class UserController extends Controller
 
     public function destroy(User $user)
     {
+        if ($user->hasRole('admin') && User::role('admin')->count() <= 1) {
+            return redirect()->route('admin.users.index')
+                ->with('error', 'Akun admin utama tidak bisa dihapus karena hanya tersisa satu admin.');
+        }
+
         if ($user->profile_photo && Storage::disk('public')->exists($user->profile_photo)) {
             Storage::disk('public')->delete($user->profile_photo);
         }

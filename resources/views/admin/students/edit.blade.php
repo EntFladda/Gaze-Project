@@ -19,7 +19,7 @@
             @method('PUT')
 
             <div class="admin-form-profile">
-                <img src="{{ $student->user->profile_photo ? asset('storage/' . $student->user->profile_photo) : asset('images/default-avatar.png') }}" alt="{{ $student->user->name }}">
+            <img src="{{ $student->user->profile_photo ? asset('storage/' . $student->user->profile_photo) : asset('storage/profile_photos/default-3d.svg') }}" alt="{{ $student->user->name }}">
                 <div class="admin-form-profile-meta">
                     <strong>{{ $student->user->name }}</strong>
                     <span>{{ $student->user->email }}</span>
@@ -35,7 +35,7 @@
                 <div>
                     <label>Ganti Foto Profil</label>
                     <input type="file" name="profile_photo" accept="image/*">
-                    @if ($student->user->profile_photo && $student->user->profile_photo !== 'profile_photos/default.webp')
+                    @if ($student->user->profile_photo && $student->user->profile_photo !== 'profile_photos/default-3d.svg')
                         <label class="admin-checkbox"><input type="checkbox" name="delete_photo" value="1"> Hapus foto saat ini</label>
                     @endif
                 </div>
@@ -76,8 +76,8 @@
             <div class="admin-form-grid four">
                 <div><label>Streak</label><input type="number" min="0" name="streak" value="{{ old('streak', $student->streak) }}"></div>
                 <div><label>EXP</label><input type="number" min="0" name="exp" value="{{ old('exp', $student->exp) }}"></div>
-                <div><label>Weekly Score</label><input type="number" min="0" name="weekly_score" value="{{ old('weekly_score', $student->weekly_score) }}"></div>
-                <div><label>Total Score</label><input type="number" min="0" name="total_score" value="{{ old('total_score', $student->total_score) }}"></div>
+                <div><label>Poin Mingguan</label><input type="number" min="0" name="weekly_score" value="{{ old('weekly_score', $student->weekly_score) }}"></div>
+                <div><label>Total Poin</label><input type="number" min="0" name="total_score" value="{{ old('total_score', $student->total_score) }}"></div>
             </div>
             <div class="admin-form-grid one">
                 <div>
@@ -102,28 +102,28 @@
     <style>
         .admin-form-page { max-width: 1040px; margin: 0 auto; }
         .admin-form-hero { padding:28px; border-radius:30px; margin-bottom:24px; }
-        .admin-form-kicker { margin:0; font-size:12px; letter-spacing:.32em; text-transform:uppercase; color:rgba(255,236,242,.72); }
+        .admin-form-kicker { margin:0; font-size:12px; letter-spacing:.32em; text-transform:uppercase; color:rgba(220, 231, 243,.72); }
         .admin-form-title { margin:12px 0 0; color:#fff; font-size:40px; }
-        .admin-form-copy { margin:14px 0 0; color:rgba(255,236,242,.75); line-height:1.8; }
+        .admin-form-copy { margin:14px 0 0; color:rgba(220, 231, 243,.75); line-height:1.8; }
         .admin-form-alert { margin-bottom:16px; padding:16px 18px; border-radius:18px; background:rgba(254,226,226,.96); color:#991b1b; }
         .admin-form-card { padding:24px; border-radius:30px; }
-        .admin-form-profile { display:flex; align-items:center; gap:16px; margin-bottom:22px; padding:18px; border-radius:22px; background:#fff7fa; }
+        .admin-form-profile { display:flex; align-items:center; gap:16px; margin-bottom:22px; padding:18px; border-radius:22px; background:#E8F0F8; }
         .admin-form-profile img { width:72px; height:72px; object-fit:cover; border-radius:999px; }
-        .admin-form-profile-meta { display:flex; flex-direction:column; gap:4px; color:#1f2937; }
-        .admin-form-profile-meta span { color:#64748b; font-size:14px; }
+        .admin-form-profile-meta { display:flex; flex-direction:column; gap:4px; color:#09254A; }
+        .admin-form-profile-meta span { color:#6A7C93; font-size:14px; }
         .admin-form-grid { display:grid; gap:20px; margin-bottom:20px; }
         .admin-form-grid.one { grid-template-columns:1fr; }
         .admin-form-grid.two { grid-template-columns:repeat(2,minmax(0,1fr)); }
         .admin-form-grid.three { grid-template-columns:repeat(3,minmax(0,1fr)); }
         .admin-form-grid.four { grid-template-columns:repeat(4,minmax(0,1fr)); }
-        .admin-form-card label { display:block; margin-bottom:10px; font-weight:700; color:#334155; }
-        .admin-form-card input, .admin-form-card select { width:100%; padding:14px 16px; border-radius:16px; border:1px solid #f0b6c9; background:#fff; color:#1f2937; }
-        .admin-checkbox { margin-top:10px; display:flex; align-items:center; gap:10px; color:#64748b; }
+        .admin-form-card label { display:block; margin-bottom:10px; font-weight:700; color:#263E5C; }
+        .admin-form-card input, .admin-form-card select { width:100%; padding:14px 16px; border-radius:16px; border:1px solid #9CB8D8; background:#fff; color:#09254A; }
+        .admin-checkbox { margin-top:10px; display:flex; align-items:center; gap:10px; color:#6A7C93; }
         .admin-checkbox input { width:auto; }
         .admin-form-actions { display:flex; justify-content:space-between; gap:14px; margin-top:24px; }
         .btn-primary, .btn-neutral { display:inline-flex; align-items:center; justify-content:center; padding:14px 18px; border-radius:16px; text-decoration:none; font-weight:700; border:0; cursor:pointer; color:#fff; }
         .btn-primary { background:var(--admin-accent); }
-        .btn-neutral { background:#64748b; }
+        .btn-neutral { background:#6A7C93; }
         @media (max-width:768px) { .admin-form-grid.two, .admin-form-grid.three, .admin-form-grid.four { grid-template-columns:1fr; } .admin-form-actions { flex-direction:column; } .admin-form-title { font-size:32px; } }
     </style>
 @endsection
