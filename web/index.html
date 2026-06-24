@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gaze Focus - Real-Time Head Pose Estimation</title>
+    <link rel="stylesheet" href="src/ui/style.css">
+    <link rel="manifest" href="manifest.json">
+</head>
+<body>
+    <!-- Main Container -->
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <h1>🎯 Gaze Focus Detector</h1>
+            <p class="subtitle">Real-Time Head Pose & Focus Detection</p>
+        </header>
+
+        <!-- Status Bar -->
+        <div class="status-bar">
+            <div class="status-item">
+                <span class="label">Model:</span>
+                <span id="modelStatus" class="status-value loading">Loading...</span>
+            </div>
+            <div class="status-item">
+                <span class="label">Camera:</span>
+                <span id="cameraStatus" class="status-value idle">Ready</span>
+            </div>
+            <div class="status-item">
+                <span class="label">FPS:</span>
+                <span id="fpsCounter" class="status-value">0</span>
+            </div>
+            <div class="status-item">
+                <span class="label">Latency:</span>
+                <span id="latencyCounter" class="status-value">0ms</span>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="content">
+            <!-- Video Container -->
+            <div class="video-container">
+                <video
+                    id="videoInput"
+                    autoplay
+                    muted
+                    playsinline
+                ></video>
+                <canvas id="canvas" class="overlay-canvas"></canvas>
+                
+                <!-- Focus Indicator -->
+                <div id="focusIndicator" class="focus-indicator idle">
+                    <span class="indicator-label">IDLE</span>
+                </div>
+            </div>
+
+            <!-- Controls Panel -->
+            <div class="controls-panel">
+                <h3>Controls</h3>
+                
+                <div class="control-group">
+                    <label for="thresholdSlider">Focus Threshold: <span id="thresholdValue">15</span>°</label>
+                    <input type="range" id="thresholdSlider" min="5" max="30" value="15" class="slider">
+                </div>
+
+                <div class="control-group">
+                    <label for="smoothingSlider">Smoothing: <span id="smoothingValue">5</span> frames</label>
+                    <input type="range" id="smoothingSlider" min="1" max="15" value="5" class="slider">
+                </div>
+
+                <div class="button-group">
+                    <button id="startBtn" class="btn btn-primary">Start Camera</button>
+                    <button id="stopBtn" class="btn btn-secondary" disabled>Stop Camera</button>
+                    <button id="resetBtn" class="btn btn-secondary" disabled>Reset Logs</button>
+                </div>
+
+                <div class="checkbox-group">
+                    <label>
+                        <input type="checkbox" id="showFaceMesh" checked>
+                        Show Face Mesh
+                    </label>
+                    <label>
+                        <input type="checkbox" id="showAngleLabels" checked>
+                        Show Angles
+                    </label>
+                    <label>
+                        <input type="checkbox" id="recordLogs" checked>
+                        Record Logs
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <!-- Metrics Panel -->
+        <div class="metrics-panel">
+            <h3>Real-Time Metrics</h3>
+            
+            <div class="metrics-grid">
+                <div class="metric">
+                    <div class="metric-label">Pitch</div>
+                    <div id="pitchValue" class="metric-value">0.00°</div>
+                    <div class="metric-bar">
+                        <div id="pitchBar" class="bar" style="width: 50%"></div>
+                    </div>
+                </div>
+
+                <div class="metric">
+                    <div class="metric-label">Yaw</div>
+                    <div id="yawValue" class="metric-value">0.00°</div>
+                    <div class="metric-bar">
+                        <div id="yawBar" class="bar" style="width: 50%"></div>
+                    </div>
+                </div>
+
+                <div class="metric">
+                    <div class="metric-label">Roll</div>
+                    <div id="rollValue" class="metric-value">0.00°</div>
+                    <div class="metric-bar">
+                        <div id="rollBar" class="bar" style="width: 50%"></div>
+                    </div>
+                </div>
+
+                <div class="metric">
+                    <div class="metric-label">Focus Duration</div>
+                    <div id="focusDuration" class="metric-value">0s</div>
+                </div>
+            </div>
+
+            <div class="metrics-stats">
+                <h4>Session Statistics</h4>
+                <p>Total Samples: <span id="totalSamples">0</span></p>
+                <p>Focus Time: <span id="focusTime">0s</span> (0%)</p>
+                <p>Unfocused Time: <span id="unfocusTime">0s</span> (0%)</p>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>🧠 Gaze Focus v1.0 | On-Device ML | Works Offline</p>
+            <p id="cacheStatus" class="cache-status">Cache Status: <span id="cacheStatusValue">Checking...</span></p>
+        </footer>
+    </div>
+
+    <!-- Notification Toast -->
+    <div id="toast" class="toast"></div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/onnxruntime-web/dist/ort.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh"></script>
+
+    <!-- App Scripts -->
+    <script src="src/cache/indexedDB.js"></script>
+    <script src="src/cache/cacheModel.js"></script>
+    <script src="src/ai/loadModel.js"></script>
+    <script src="src/camera/webcam.js"></script>
+    <script src="src/gaze/headPose.js"></script>
+    <script src="src/gaze/smoothing.js"></script>
+    <script src="src/gaze/focusLogic.js"></script>
+    <script src="src/ai/inference.js"></script>
+    <script src="src/ui/overlay.js"></script>
+    <script src="src/ui/indicator.js"></script>
+    <script src="src/app/main.js"></script>
+</body>
+</html>
