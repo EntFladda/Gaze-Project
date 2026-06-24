@@ -35,6 +35,22 @@ Implementasi focus detection real-time untuk web pembelajaran/gamifikasi. Projec
 +-- requirements.txt
 ```
 
+## Dataset yang Digunakan
+
+Proyek ini menggunakan beberapa dataset gaze tracking dan estimasi pose kepala untuk mencapai ketahanan pada variasi pencahayaan dan resolusi kamera:
+
+1. **MPIIGaze-Light** (`rakibashar/mpiigaze-dataset`): Pengujian ketahanan variasi cahaya (low, normal, high).
+2. **UnityEyes** (`iamzeeshandev/unityeyes-real-world-eye-tracking-dataset`): Data hybrid sintesis & real-world untuk titik pelacakan pupil/iris.
+3. **GazeCapture**: Pelacakan mata dari perangkat mobile dengan beragam subjek.
+4. **300W-LP & FAZE**: Estimasi *Head Pose* 3D (pitch, yaw, roll) dan face alignment.
+
+Untuk mengunduh dataset secara otomatis ke folder `data/`, jalankan:
+
+```bash
+python scripts/download_kaggle_datasets.py --all
+```
+*(Catatan: Membutuhkan package `kaggle` dan token konfigurasi `~/.kaggle/kaggle.json`)*
+
 ## Alur Project
 
 ```text
