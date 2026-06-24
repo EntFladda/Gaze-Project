@@ -37,12 +37,10 @@ Implementasi focus detection real-time untuk web pembelajaran/gamifikasi. Projec
 
 ## Dataset yang Digunakan
 
-Proyek ini menggunakan beberapa dataset gaze tracking dan estimasi pose kepala untuk mencapai ketahanan pada variasi pencahayaan dan resolusi kamera:
+Proyek ini menggunakan dua dataset utama sesuai dengan proposal penelitian:
 
-1. **MPIIGaze-Light** (`rakibashar/mpiigaze-dataset`): Pengujian ketahanan variasi cahaya (low, normal, high).
-2. **UnityEyes** (`iamzeeshandev/unityeyes-real-world-eye-tracking-dataset`): Data hybrid sintesis & real-world untuk titik pelacakan pupil/iris.
-3. **GazeCapture**: Pelacakan mata dari perangkat mobile dengan beragam subjek.
-4. **300W-LP & FAZE**: Estimasi *Head Pose* 3D (pitch, yaw, roll) dan face alignment.
+1. **MPIIGaze** (`rakibashar/mpiigaze-dataset`): Dataset utama untuk *gaze tracking* dengan fokus pada ketahanan terhadap variasi pencahayaan (kondisi *low*, *normal*, dan *high*).
+2. **300W-LP**: Dataset yang berfokus pada *face alignment* dan estimasi *Head Pose* 3D (*pitch*, *yaw*, *roll*) untuk melacak pergerakan arah kepala pengguna.
 
 Untuk mengunduh dataset secara otomatis ke folder `data/`, jalankan:
 
