@@ -1,20 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Download & Setup Kaggle Datasets for Thesis Testing
-- Dataset 1: MPIIGaze-Light (brightness robustness)
-- Dataset 2: UnityEyes (eye tracking)
-
-Prerequisite: 
-  pip install kaggle
-  # Place ~/.kaggle/kaggle.json (API key from https://www.kaggle.com/settings)
-
-Usage:
-  python scripts/download_kaggle_datasets.py --all
-  python scripts/download_kaggle_datasets.py --brightness --eye-tracking
-  python scripts/download_kaggle_datasets.py --verify
-"""
-
 import os
 import sys
 import json
@@ -27,15 +10,15 @@ def setup_kaggle_credentials():
     kaggle_config = Path.home() / '.kaggle' / 'kaggle.json'
     
     if not kaggle_config.exists():
-        print("❌ Kaggle credentials not found!")
-        print("📝 Setup instructions:")
+        print(" Kaggle credentials not found!")
+        print(" Setup instructions:")
         print("   1. Go to: https://www.kaggle.com/settings/account")
         print("   2. Click 'Create New Token' (downloads kaggle.json)")
         print("   3. Move to: ~/.kaggle/kaggle.json")
         print("   4. Run: chmod 600 ~/.kaggle/kaggle.json (on Unix/Mac)")
         return False
     
-    print("✅ Kaggle credentials found")
+    print(" Kaggle credentials found")
     return True
 
 
@@ -54,11 +37,11 @@ def download_brightness_dataset():
     try:
         import kaggle
     except ImportError:
-        print("❌ kaggle package not installed")
+        print(" kaggle package not installed")
         print("   Install: pip install kaggle")
         return False
     
-    print(f"📥 Downloading to: {output_dir}")
+    print(f" Downloading to: {output_dir}")
     print("   Dataset: rakibashar/mpiigaze-dataset")
     print("   Size: ~5GB (may take 10-30 minutes)")
     
@@ -68,10 +51,10 @@ def download_brightness_dataset():
             path=str(output_dir),
             unzip=True
         )
-        print("✅ Download complete!")
+        print(" Download complete!")
         return True
     except Exception as e:
-        print(f"❌ Download failed: {e}")
+        print(f" Download failed: {e}")
         print("   Manual download: https://www.kaggle.com/datasets/rakibashar/mpiigaze-dataset")
         return False
 
@@ -91,11 +74,11 @@ def download_eye_tracking_dataset():
     try:
         import kaggle
     except ImportError:
-        print("❌ kaggle package not installed")
+        print(" kaggle package not installed")
         print("   Install: pip install kaggle")
         return False
     
-    print(f"📥 Downloading to: {output_dir}")
+    print(f" Downloading to: {output_dir}")
     print("   Dataset: iamzeeshandev/unityeyes-real-world-eye-tracking-dataset")
     print("   Size: ~3GB (may take 5-15 minutes)")
     
@@ -105,10 +88,10 @@ def download_eye_tracking_dataset():
             path=str(output_dir),
             unzip=True
         )
-        print("✅ Download complete!")
+        print(" Download complete!")
         return True
     except Exception as e:
-        print(f"❌ Download failed: {e}")
+        print(f" Download failed: {e}")
         print("   Manual download: https://www.kaggle.com/datasets/iamzeeshandev/unityeyes-real-world-eye-tracking-dataset")
         return False
 def download_eye_tracking_dataset():
@@ -126,11 +109,11 @@ def download_eye_tracking_dataset():
     try:
         import kaggle
     except ImportError:
-        print("❌ kaggle package not installed")
+        print(" kaggle package not installed")
         print("   Install: pip install kaggle")
         return False
     
-    print(f"📥 Downloading to: {output_dir}")
+    print(f" Downloading to: {output_dir}")
     print("   Dataset: iamzeeshandev/unityeyes-real-world-eye-tracking-dataset")
     print("   Size: ~3GB (may take 5-15 minutes)")
     
@@ -140,10 +123,10 @@ def download_eye_tracking_dataset():
             path=str(output_dir),
             unzip=True
         )
-        print("✅ Download complete!")
+        print(" Download complete!")
         return True
     except Exception as e:
-        print(f"❌ Download failed: {e}")
+        print(f" Download failed: {e}")
         print("   Manual download: https://www.kaggle.com/datasets/iamzeeshandev/unityeyes-real-world-eye-tracking-dataset")
         return False
 
@@ -166,11 +149,11 @@ def verify_datasets():
         if p.exists():
             count = sum(1 for _ in p.rglob('*.*'))
             size_mb = sum(f.stat().st_size for f in p.rglob('*.*')) / (1024*1024)
-            print(f"✅ {name}")
+            print(f" {name}")
             print(f"   Path: {path}")
             print(f"   Files: {count}, Size: {size_mb:.1f} MB")
         else:
-            print(f"❌ {name}")
+            print(f" {name}")
             print(f"   Path: {path} (NOT FOUND)")
     
     return True
@@ -204,7 +187,7 @@ def create_metadata():
         path.parent.mkdir(parents=True, exist_ok=True)
         with open(path, 'w') as f:
             json.dump(meta, f, indent=2)
-        print(f"✅ Created: {path}")
+        print(f" Created: {path}")
     
     return True
 
@@ -219,7 +202,7 @@ def main():
     args = parser.parse_args()
     
     print("="*60)
-    print("🎯 KAGGLE DATASET DOWNLOADER")
+    print(" KAGGLE DATASET DOWNLOADER")
     print("="*60)
     
     # Check credentials
@@ -251,8 +234,8 @@ def main():
     print("\n" + "="*60)
     print("[SUMMARY]")
     print("="*60)
-    print(f"✅ Downloaded {success_count} datasets")
-    print(f"\n📝 Next steps:")
+    print(f" Downloaded {success_count} datasets")
+    print(f"\n Next steps:")
     print(f"   1. python train_unified.py --train --epochs 50")
     print(f"   2. python scripts/export_to_onnx.py")
     print(f"   3. python run_complete_pipeline.py --skip-train --webcam")
@@ -274,7 +257,7 @@ def download_gazecapture_dataset(output_dir='data/GazeCapture'):
     - iPhone/iPad dataset (low-res to high-res)
     - Good for eye-tracking testing
     """
-    print("\n📥 Downloading GazeCapture dataset...")
+    print("\n Downloading GazeCapture dataset...")
     
     datasets = [
         'cluelessvagrant/gazecapture',  # Example
@@ -291,7 +274,7 @@ def download_gazecapture_dataset(output_dir='data/GazeCapture'):
                 ['kaggle', 'datasets', 'download', '-d', dataset, '-p', str(output_path)],
                 check=True
             )
-            print(f"   ✅ Downloaded: {dataset}")
+            print(f"    Downloaded: {dataset}")
             
             # Extract
             for zip_file in output_path.glob('*.zip'):
@@ -301,10 +284,10 @@ def download_gazecapture_dataset(output_dir='data/GazeCapture'):
             
             return True
         except Exception as e:
-            print(f"   ⚠️  Failed: {e}")
+            print(f"   ️  Failed: {e}")
             continue
     
-    print("⚠️  GazeCapture not found (download manually if needed)")
+    print("️  GazeCapture not found (download manually if needed)")
     print("   Official: https://gazecapture.csail.mit.edu/")
     return False
 
@@ -317,10 +300,10 @@ def download_mpiigaze_extended(output_dir='data/MPIIGaze'):
     output_path = Path(output_dir)
     
     if (output_path / 'Data').exists():
-        print("✅ MPIIGaze already present")
+        print(" MPIIGaze already present")
         return True
     
-    print("\n📥 Downloading MPIIGaze extended...")
+    print("\n Downloading MPIIGaze extended...")
     
     datasets = [
         'asif2174/mpiigaze',  # Example
@@ -335,7 +318,7 @@ def download_mpiigaze_extended(output_dir='data/MPIIGaze'):
                 ['kaggle', 'datasets', 'download', '-d', dataset, '-p', str(output_path)],
                 check=True
             )
-            print(f"   ✅ Downloaded")
+            print(f"    Downloaded")
             
             # Extract
             for zip_file in output_path.glob('*.zip'):
@@ -344,16 +327,16 @@ def download_mpiigaze_extended(output_dir='data/MPIIGaze'):
             
             return True
         except Exception as e:
-            print(f"   ⚠️  Failed: {e}")
+            print(f"   ️  Failed: {e}")
             continue
     
-    print("❌ Could not download MPIIGaze")
+    print(" Could not download MPIIGaze")
     return False
 
 
 def verify_datasets():
     """Verify dataset structure"""
-    print("\n📊 Verifying dataset structure...")
+    print("\n Verifying dataset structure...")
     
     datasets_check = {
         'data/300W_LP': ['AFW', 'HELEN', 'IBUG', 'LFPW'],
@@ -366,13 +349,13 @@ def verify_datasets():
         path = Path(dataset_path)
         if path.exists():
             items = [d.name for d in path.iterdir()]
-            print(f"✅ {dataset_path}")
+            print(f" {dataset_path}")
             if items and expected_items != ['*']:
                 print(f"   Contents: {', '.join(items[:3])}...")
         else:
-            print(f"⚠️  {dataset_path} not found")
+            print(f"️  {dataset_path} not found")
     
-    print("\n✅ Dataset verification complete")
+    print("\n Dataset verification complete")
 
 
 def main():
@@ -391,7 +374,7 @@ def main():
     
     if not args.verify_only:
         if not check_kaggle_setup():
-            print("\n📝 Manual download options:")
+            print("\n Manual download options:")
             print("   1. FAZE: https://github.com/crishanli/FAZE")
             print("   2. GazeCapture: https://gazecapture.csail.mit.edu/")
             print("   3. MPIIGaze: http://www.mpiigaze.de/")
@@ -408,9 +391,9 @@ def main():
     
     verify_datasets()
     
-    print("\n✅ Download process complete!")
-    print("📁 Datasets location: data/")
-    print("🚀 Ready for training: python run_complete_pipeline.py")
+    print("\n Download process complete!")
+    print(" Datasets location: data/")
+    print(" Ready for training: python run_complete_pipeline.py")
 
 
 if __name__ == '__main__':

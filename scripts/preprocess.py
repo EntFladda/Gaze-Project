@@ -1,8 +1,3 @@
-"""
-Data Preprocessing Script
-Prepare and preprocess raw dataset for training
-"""
-
 import argparse
 import os
 from pathlib import Path
@@ -24,7 +19,7 @@ def preprocess_dataset(raw_dir, output_dir):
     # Add your preprocessing logic here
     # Example: resize images, normalize, augment, etc.
     
-    logger.info("✅ Preprocessing complete")
+    logger.info(" Preprocessing complete")
 
 def create_splits(processed_dir, splits_dir, train_ratio=0.8, val_ratio=0.1):
     """Create train/val/test splits"""
@@ -35,7 +30,7 @@ def create_splits(processed_dir, splits_dir, train_ratio=0.8, val_ratio=0.1):
     for split_dir in ['train', 'val', 'test']:
         (splits_path / split_dir).mkdir(parents=True, exist_ok=True)
     
-    logger.info("✅ Splits created")
+    logger.info(" Splits created")
 
 def main():
     parser = argparse.ArgumentParser(description='Preprocess Dataset')

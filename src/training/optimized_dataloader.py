@@ -1,12 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Optimized Data Pipeline untuk Head Pose Detection
-- Faster dataloading
-- Better augmentation
-- Memory efficient
-"""
-
 import torch
 from torch.utils.data import Dataset, DataLoader
 from torchvision import transforms

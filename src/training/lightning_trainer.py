@@ -1,14 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-🚀 Modern Training Pipeline dengan PyTorch Lightning
-- Agile development (quick iteration)
-- Experiment tracking (WandB)
-- Distributed training (DDP)
-- Mixed precision training
-- Early stopping + checkpointing
-"""
-
 import torch
 import torch.nn as nn
 import torch.nn.functional as F

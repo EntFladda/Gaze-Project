@@ -3,17 +3,6 @@ import sys
 from pathlib import Path
 
 def setup_logger(name, log_file=None, level=logging.INFO):
-    """
-    Setup a logger with console and optional file handlers.
-    
-    Args:
-        name: Logger name
-        log_file: Optional log file path
-        level: Logging level
-        
-    Returns:
-        Configured logger
-    """
     logger = logging.getLogger(name)
     logger.setLevel(level)
     

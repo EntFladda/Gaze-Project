@@ -1,5 +1,3 @@
-#!/bin/bash
-
 # Comprehensive Build & Deployment Script
 # Usage: ./deploy.sh [environment] [platform]
 

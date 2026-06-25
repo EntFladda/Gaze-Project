@@ -9,37 +9,22 @@ import numpy as np
 from tqdm import tqdm
 
 def compute_angular_error(pred, target):
-    """
-    Compute angular error between predicted dan target gaze direction
-    
-    Args:
-        pred: (B, 3) normalized angles
-        target: (B, 3) normalized angles
-    
-    Returns:
-        Angular error in degrees
-    """
-    # Denormalize dari [-1, 1] ke radians
+    """Hitung error sudut prediksi target."""
+    # Denormalisasi ke dalam radian.
     pred_rad = pred * np.pi / 2  # assuming [-1, 1] represents [-π/2, π/2]
     target_rad = target * np.pi / 2
     
-    # Compute difference
+    # Hitung selisih sudut.
     diff = torch.abs(pred_rad - target_rad)
     
-    # Average angular error
+    # Hitung rata-rata error.
     mae = diff.mean()
     
     return mae * 180 / np.pi  # Convert to degrees
 
 def train_model(model, train_loader, val_loader, epochs=10, device=None, 
                 model_name="improved_gaze_model", checkpoint_dir="checkpoints"):
-    """
-    Enhanced training function dengan:
-    - Better learning rate scheduling
-    - Early stopping
-    - Gradient clipping
-    - Mixed precision training (optional)
-    """
+    """Fungsi pelatihan model ditingkatkan."""
     import os
     
     print(f"[TRAIN] Entering train_model function...", flush=True)
@@ -57,21 +42,21 @@ def train_model(model, train_loader, val_loader, epochs=10, device=None,
 
     model = model.to(device)
     
-    # Loss function dengan balancing
+    # Fungsi loss dengan balancing.
     criterion = nn.MSELoss()
     
-    # Optimizer dengan weight decay untuk regularization
+    # Optimizer dengan weight decay.
     optimizer = optim.AdamW(model.parameters(), lr=1e-4, weight_decay=1e-5)
     
-    # Learning rate scheduler
+    # Pengatur learning rate.
     scheduler = CosineAnnealingLR(optimizer, T_max=epochs, eta_min=1e-6)
     
-    # Early stopping parameters
+    # Parameter early stopping.
     best_val_loss = float('inf')
     patience = 5
     patience_counter = 0
     
-    # Create checkpoint directory
+    # Buat direktori checkpoint.
     os.makedirs(checkpoint_dir, exist_ok=True)
     
     print(f"\n[TRAIN] Training Configuration:")
@@ -100,12 +85,12 @@ def train_model(model, train_loader, val_loader, epochs=10, device=None,
         for batch_idx, (x, y) in pbar:
             x, y = x.to(device), y.to(device)
             
-            # Forward pass
+            # Lakukan forward pass.
             optimizer.zero_grad()
             out = model(x)
             loss = criterion(out, y)
             
-            # Backward pass dengan gradient clipping
+            # Backward pass gradient clipping.
             loss.backward()
             torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
             optimizer.step()
@@ -113,7 +98,7 @@ def train_model(model, train_loader, val_loader, epochs=10, device=None,
             running_loss += loss.item()
             batch_count += 1
             
-            # Update progress bar
+            # Perbarui progress bar.
             avg_loss = running_loss / batch_count
             pbar.set_postfix({'loss': f'{avg_loss:.4f}'})
 
@@ -135,7 +120,7 @@ def train_model(model, train_loader, val_loader, epochs=10, device=None,
                 val_loss += loss.item()
                 val_count += 1
                 
-                # Compute angular error
+                # Hitung error sudut.
                 angular_err = compute_angular_error(out, y)
                 val_angular_errors.append(angular_err.item())
 
@@ -143,7 +128,7 @@ def train_model(model, train_loader, val_loader, epochs=10, device=None,
         avg_angular_error = np.mean(val_angular_errors)
         elapsed = time.time() - epoch_start
         
-        # Print epoch results
+        # Cetak hasil epoch.
         print(f"\n[TRAIN] Results:")
         print(f"  Train Loss: {avg_train_loss:.6f}")
         print(f"  Val Loss:   {avg_val_loss:.6f}")
@@ -160,7 +145,7 @@ def train_model(model, train_loader, val_loader, epochs=10, device=None,
             best_val_loss = avg_val_loss
             patience_counter = 0
             
-            # Save best model
+            # Simpan model terbaik.
             checkpoint_path = f"{checkpoint_dir}/{model_name}_best.pt"
             torch.save({
                 'epoch': epoch + 1,
@@ -173,12 +158,12 @@ def train_model(model, train_loader, val_loader, epochs=10, device=None,
                     'input_size': 224,
                 }
             }, checkpoint_path)
-            print(f"  ✅ Best model saved: {checkpoint_path}")
+            print(f"   Best model saved: {checkpoint_path}")
         else:
             patience_counter += 1
             print(f"  No improvement (patience: {patience_counter}/{patience})")
         
-        # Early stopping
+        # Proses early stopping.
         if patience_counter >= patience:
             print(f"\n[TRAIN] Early stopping triggered after {epoch+1} epochs")
             break
@@ -192,9 +177,7 @@ def train_model(model, train_loader, val_loader, epochs=10, device=None,
 
 
 def evaluate_model(model, val_loader, device=None):
-    """
-    Evaluate model pada validation set
-    """
+    """Evaluasi model pada data validasi."""
     if device is None:
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     
@@ -232,7 +215,7 @@ def evaluate_model(model, val_loader, device=None):
     }
 
 
-# Untuk backward compatibility
+# Untuk kompatibilitas versi lama.
 def evaluate_focus(*args, **kwargs):
-    """Placeholder untuk backward compatibility"""
+    """Fungsi kompatibilitas versi lama."""
     pass

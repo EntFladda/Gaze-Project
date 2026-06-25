@@ -1,21 +1,3 @@
-#!/usr/bin/env python3
-"""
-Annotation helper for Local gaze dataset (Dika, Tono, etc.)
-
-This script helps create CSV annotations for local video frame sequences.
-Users can manually label gaze positions or use automatic head pose detection.
-
-Usage:
-    python scripts/annotate_local.py --person Dika --method manual
-    python scripts/annotate_local.py --person Tono --method auto
-
-CSV output format:
-    image,pitch,yaw,roll
-    VID_20260424_123354_0001.jpg,0.1,0.2,-0.1
-    VID_20260424_123354_0002.jpg,0.1,0.25,-0.1
-    ...
-"""
-
 import os
 import csv
 import argparse
@@ -42,10 +24,10 @@ def create_empty_annotations(person_dir, output_file):
     ])
     
     if not image_files:
-        print(f"❌ No images found in {person_dir}")
+        print(f" No images found in {person_dir}")
         return
     
-    print(f"📝 Creating annotations for {len(image_files)} images...")
+    print(f" Creating annotations for {len(image_files)} images...")
     
     with open(output_file, 'w', newline='') as f:
         writer = csv.DictWriter(f, fieldnames=['image', 'pitch', 'yaw', 'roll'])
@@ -59,7 +41,7 @@ def create_empty_annotations(person_dir, output_file):
                 'roll': 0.0
             })
     
-    print(f"✅ Created {output_file}")
+    print(f" Created {output_file}")
     print(f"   {len(image_files)} rows with default values (0, 0, 0)")
     print(f"   Edit the file to add actual gaze annotations")
 
@@ -68,7 +50,7 @@ def auto_detect_head_pose(person_dir, output_file):
     """Automatically detect head pose using MediaPipe."""
     
     if not MEDIAPIPE_AVAILABLE:
-        print("❌ MediaPipe not available. Install with: pip install mediapipe opencv-python")
+        print(" MediaPipe not available. Install with: pip install mediapipe opencv-python")
         return
     
     image_files = sorted([
@@ -77,10 +59,10 @@ def auto_detect_head_pose(person_dir, output_file):
     ])
     
     if not image_files:
-        print(f"❌ No images found in {person_dir}")
+        print(f" No images found in {person_dir}")
         return
     
-    print(f"🔍 Auto-detecting head pose for {len(image_files)} images...")
+    print(f" Auto-detecting head pose for {len(image_files)} images...")
     
     # Initialize MediaPipe Face Detection and Mesh
     mp_face_mesh = solutions.face_mesh
@@ -99,7 +81,7 @@ def auto_detect_head_pose(person_dir, output_file):
             image = cv2.imread(img_path)
             
             if image is None:
-                print(f"   ⚠️ [{i+1}/{len(image_files)}] Skipped: {img_name}")
+                print(f"   ️ [{i+1}/{len(image_files)}] Skipped: {img_name}")
                 annotations.append({'image': img_name, 'pitch': 0.0, 'yaw': 0.0, 'roll': 0.0})
                 continue
             
@@ -144,14 +126,14 @@ def auto_detect_head_pose(person_dir, output_file):
                 })
                 
                 success_count += 1
-                print(f"   ✅ [{i+1}/{len(image_files)}] {img_name}: pitch={pitch:.2f}, yaw={yaw:.2f}")
+                print(f"    [{i+1}/{len(image_files)}] {img_name}: pitch={pitch:.2f}, yaw={yaw:.2f}")
             
             else:
-                print(f"   ⚠️ [{i+1}/{len(image_files)}] No face detected: {img_name}")
+                print(f"   ️ [{i+1}/{len(image_files)}] No face detected: {img_name}")
                 annotations.append({'image': img_name, 'pitch': 0.0, 'yaw': 0.0, 'roll': 0.0})
         
         except Exception as e:
-            print(f"   ⚠️ [{i+1}/{len(image_files)}] Error: {img_name} - {e}")
+            print(f"   ️ [{i+1}/{len(image_files)}] Error: {img_name} - {e}")
             annotations.append({'image': img_name, 'pitch': 0.0, 'yaw': 0.0, 'roll': 0.0})
     
     # Write CSV
@@ -160,7 +142,7 @@ def auto_detect_head_pose(person_dir, output_file):
         writer.writeheader()
         writer.writerows(annotations)
     
-    print(f"\n✅ Created {output_file}")
+    print(f"\n Created {output_file}")
     print(f"   Total: {len(annotations)} annotations")
     print(f"   Success: {success_count} detected, {len(annotations) - success_count} default")
     
@@ -174,7 +156,7 @@ def interactive_annotate(person_dir, output_file):
         import matplotlib.pyplot as plt
         from matplotlib.widgets import Slider
     except ImportError:
-        print("❌ matplotlib not available. Install with: pip install matplotlib")
+        print(" matplotlib not available. Install with: pip install matplotlib")
         return
     
     image_files = sorted([
@@ -183,10 +165,10 @@ def interactive_annotate(person_dir, output_file):
     ])
     
     if not image_files:
-        print(f"❌ No images found in {person_dir}")
+        print(f" No images found in {person_dir}")
         return
     
-    print(f"🎨 Interactive annotation for {len(image_files)} images")
+    print(f" Interactive annotation for {len(image_files)} images")
     print("   Use sliders to set pitch, yaw, roll")
     print("   Press SAVE to save, NEXT to continue, Q to quit")
     
@@ -231,7 +213,7 @@ def interactive_annotate(person_dir, output_file):
                 show_image()
                 fig.canvas.draw_idle()
             else:
-                print("✅ All images annotated!")
+                print(" All images annotated!")
                 plt.close()
                 
                 # Save CSV
@@ -239,11 +221,11 @@ def interactive_annotate(person_dir, output_file):
                     writer = csv.DictWriter(f, fieldnames=['image', 'pitch', 'yaw', 'roll'])
                     writer.writeheader()
                     writer.writerows(annotations)
-                print(f"✅ Saved to {output_file}")
+                print(f" Saved to {output_file}")
         
         elif event.key == 'q':  # Quit
             plt.close()
-            print("❌ Cancelled")
+            print(" Cancelled")
     
     fig.canvas.mpl_connect('key_press_event', on_key)
     show_image()
@@ -269,35 +251,35 @@ def main():
     person_dir = os.path.join(args.input_dir, args.person)
     
     if not os.path.exists(person_dir):
-        print(f"❌ Directory not found: {person_dir}")
+        print(f" Directory not found: {person_dir}")
         return
     
     output_csv = args.output_csv or os.path.join(person_dir, 'annotations.csv')
     
     # Check if annotations already exist
     if os.path.exists(output_csv):
-        print(f"⚠️ Annotations already exist: {output_csv}")
+        print(f"️ Annotations already exist: {output_csv}")
         response = input("Overwrite? (y/n): ").strip().lower()
         if response != 'y':
             print("Cancelled")
             return
     
     # Run annotation method
-    print(f"\n📂 Person: {args.person}")
-    print(f"📍 Directory: {person_dir}")
-    print(f"💾 Output: {output_csv}")
-    print(f"🔧 Method: {args.method}")
+    print(f"\n Person: {args.person}")
+    print(f" Directory: {person_dir}")
+    print(f" Output: {output_csv}")
+    print(f" Method: {args.method}")
     print()
     
     if args.method == 'manual':
         create_empty_annotations(person_dir, output_csv)
-        print("\n📝 Manual mode: Edit the CSV file to add gaze values")
+        print("\n Manual mode: Edit the CSV file to add gaze values")
         print("   Fields: image, pitch, yaw, roll")
         print("   Example: VID_001.jpg,0.1,0.2,-0.05")
     
     elif args.method == 'auto':
         auto_detect_head_pose(person_dir, output_csv)
-        print("\n⚠️ Auto-detected values may be inaccurate")
+        print("\n️ Auto-detected values may be inaccurate")
         print("   Consider manual refinement for better results")
     
     elif args.method == 'interactive':

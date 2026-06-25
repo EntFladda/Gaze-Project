@@ -193,7 +193,7 @@ class GazeDetector:
         """Predict gaze dari single image"""
         img = cv2.imread(str(image_path))
         if img is None:
-            print(f"❌ Tidak bisa buka image: {image_path}")
+            print(f" Tidak bisa buka image: {image_path}")
             return None
         
         return self._process_frame(img, image_path)
@@ -638,7 +638,7 @@ def train_pipeline(device, epochs=10, subset_percent=25):
         try:
             epoch_best_accuracy = train_model(model, train_loader, val_loader, epochs=epochs, device=device)
         except KeyboardInterrupt:
-            print(f"\n[TRAIN] ⚠️  Training dihentikan oleh user (Ctrl+C)")
+            print(f"\n[TRAIN] ️  Training dihentikan oleh user (Ctrl+C)")
             print(f"[TRAIN] Accuracy saat ini: {best_overall_accuracy:.1f}%")
             if best_overall_accuracy >= min_target_accuracy:
                 print(f"[TRAIN] Saving model dengan accuracy: {best_overall_accuracy:.1f}%")
@@ -658,21 +658,21 @@ def train_pipeline(device, epochs=10, subset_percent=25):
         if epoch_best_accuracy > best_overall_accuracy:
             best_overall_accuracy = epoch_best_accuracy
             best_model_state = model.state_dict().copy()
-            print(f"✓ NEW BEST: {best_overall_accuracy:.1f}%")
+            print(f" NEW BEST: {best_overall_accuracy:.1f}%")
         
         # Check apakah sudah mencapai target 80% atau lebih
         if epoch_best_accuracy >= min_target_accuracy:
             print(f"\n{'='*70}")
             if epoch_best_accuracy >= ideal_target_accuracy:
-                print(f"🏆 IDEAL TARGET TERCAPAI! Focus Accuracy: {epoch_best_accuracy:.1f}% >= {ideal_target_accuracy}%")
+                print(f" IDEAL TARGET TERCAPAI! Focus Accuracy: {epoch_best_accuracy:.1f}% >= {ideal_target_accuracy}%")
                 print(f"[TRAIN] Menghentikan training loop (TARGET IDEAL TERPENUHI)")
             else:
-                print(f"🎉 MINIMUM TARGET TERCAPAI! Focus Accuracy: {epoch_best_accuracy:.1f}% >= {min_target_accuracy}%")
+                print(f" MINIMUM TARGET TERCAPAI! Focus Accuracy: {epoch_best_accuracy:.1f}% >= {min_target_accuracy}%")
                 print(f"[TRAIN] Menghentikan training loop")
             print(f"{'='*70}")
             break
         else:
-            print(f"⏳ Belum mencapai target minimum ({epoch_best_accuracy:.1f}% < {min_target_accuracy}%)")
+            print(f" Belum mencapai target minimum ({epoch_best_accuracy:.1f}% < {min_target_accuracy}%)")
             print(f"[TRAIN] Training iteration berikutnya...")
             print(f"{'='*70}")
     

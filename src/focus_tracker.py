@@ -1,6 +1,6 @@
 """
-🎯 Advanced Focus Tracking System
-Tracks focus state with duration, activity detection, and averaging
+Sistem pelacakan fokus lanjutan.
+Melacak durasi, aktivitas, rata-rata.
 """
 
 import numpy as np
@@ -12,26 +12,26 @@ import cv2
 
 
 class FocusState(Enum):
-    """States for focus tracking"""
-    FOCUSED = "focused"           # Mata lurus, fokus sempurna
-    PARTIALLY_FOCUSED = "partial" # Mata sedikit terputar
-    NOT_FOCUSED = "unfocused"     # Mata jauh menoleh
-    IGNORED = "ignored"           # Aktivitas diabaikan (minum, dll)
-    NO_FACE = "no_face"           # Wajah tidak terdeteksi
+    """Status pelacakan fokus."""
+    FOCUSED = "focused"           # Fokus sempurna.
+    PARTIALLY_FOCUSED = "partial" # Fokus sebagian.
+    NOT_FOCUSED = "unfocused"     # Tidak fokus.
+    IGNORED = "ignored"           # Abaikan aktivitas.
+    NO_FACE = "no_face"           # Wajah tidak terdeteksi.
 
 
 class ActivityType(Enum):
     """Types of activities to detect and ignore"""
     NORMAL = "normal"
-    DRINKING = "drinking"         # Minum
-    EATING = "eating"             # Makan
-    MOVING = "moving"             # Bergerak besar (searching, berdiri)
-    OCCLUSION = "occlusion"       # Wajah terhalangi (tangan, dsb)
+    DRINKING = "drinking"         # Sedang minum.
+    EATING = "eating"             # Sedang makan.
+    MOVING = "moving"             # Pergerakan besar.
+    OCCLUSION = "occlusion"       # Wajah terhalang.
 
 
 @dataclass
 class FocusFrame:
-    """Data untuk setiap frame yang ditrack"""
+    """Data pelacakan setiap frame."""
     timestamp: datetime
     focus_percentage: float
     pitch: float
@@ -43,7 +43,7 @@ class FocusFrame:
 
 @dataclass
 class FocusPeriod:
-    """Periode kontinyu dengan state yang sama"""
+    """Periode kontinyu status sama."""
     start_time: datetime
     end_time: Optional[datetime]
     state: FocusState
@@ -54,22 +54,14 @@ class FocusPeriod:
 
 class FocusTracker:
     """
-    Advanced focus tracking dengan duration dan activity detection
-    
-    Sistem:
-    1. Track setiap frame dengan focus%, pitch, yaw
-    2. Deteksi activity (minum, bergerak, dll) dan mark sebagai "ignore"
-    3. Group frames yang kontinyu dalam state yang sama
-    4. Hitung final average: 
-        fokus_time / (fokus_time + tidak_fokus_time) * 100%
-       (waktu "ignore" tidak dihitung)
+    Pelacakan fokus durasi aktivitas.
     """
     
     def __init__(self, 
-                 focus_threshold_high=80,    # Focus >= 80% = FOCUSED
-                 focus_threshold_low=50,     # Focus < 50% = NOT_FOCUSED
-                 duration_threshold=0.5,     # Minimal durasi untuk dihitung (seconds)
-                 face_loss_threshold=3):     # Frame tanpa wajah sebelum mark "no_face"
+                 focus_threshold_high=80,    # Batas fokus tinggi.
+                 focus_threshold_low=50,     # Batas fokus rendah.
+                 duration_threshold=0.5,     # Durasi minimal dihitung.
+                 face_loss_threshold=3):     # Batas kehilangan wajah.
         
         self.focus_threshold_high = focus_threshold_high
         self.focus_threshold_low = focus_threshold_low
@@ -94,15 +86,7 @@ class FocusTracker:
                 frame_rgb: Optional[np.ndarray] = None,
                 timestamp: Optional[datetime] = None):
         """
-        Add frame ke tracking
-        
-        Args:
-            focus_percentage: Focus % (0-100)
-            pitch: Head pitch angle (derajat)
-            yaw: Head yaw angle (derajat)
-            face_detected: Apakah wajah terdeteksi
-            frame_rgb: Frame BGR untuk activity detection (optional)
-            timestamp: Waktu frame (auto-generate jika None)
+        Tambah frame ke pelacakan.
         """
         if timestamp is None:
             if self.last_frame_time is None:
@@ -116,7 +100,7 @@ class FocusTracker:
         
         self.last_frame_time = timestamp
         
-        # Detect state dari focus %
+        # Deteksi status fokus.
         if not face_detected:
             state = FocusState.NO_FACE
             self.no_face_count += 1
@@ -129,10 +113,10 @@ class FocusTracker:
             else:
                 state = FocusState.NOT_FOCUSED
         
-        # Detect activity
+        # Deteksi aktivitas.
         activity = self._detect_activity(focus_percentage, pitch, yaw, frame_rgb)
         
-        # Jika activity diabaikan, mark state sebagai IGNORED
+        # Abaikan aktivitas non-normal.
         if activity != ActivityType.NORMAL:
             state = FocusState.IGNORED
         
@@ -155,39 +139,29 @@ class FocusTracker:
                         pitch: float,
                         yaw: float,
                         frame_rgb: Optional[np.ndarray] = None) -> ActivityType:
-        """
-        Detect activity dari frame
-        
-        Rules:
-        - Pitch berubah drastic + fokus jatuh → MOVING/searching
-        - Mulut terdeteksi terbuka + head gerak ke bawah → DRINKING
-        - Occlusion (tangan di depan wajah) → OCCLUSION
-        """
+        """Deteksi aktivitas frame."""
         # TODO: Integrate dengan mouth detection, hand detection
         # Untuk sekarang, simple heuristics
         
-        # Large head movement → MOVING
+        # Gerakan kepala besar.
         angle_magnitude = np.sqrt(pitch**2 + yaw**2)
         if angle_magnitude > 70 and focus_percentage < 30:
             return ActivityType.MOVING
         
-        # Head down + focus jatuh → possibly DRINKING
+        # Kemungkinan sedang minum.
         if pitch > 30 and focus_percentage < 40:
             return ActivityType.DRINKING
         
         return ActivityType.NORMAL
     
     def _finalize_current_period(self):
-        """
-        Finalize periode saat ini dan tambah ke periods list
-        Hanya add jika duration >= threshold
-        """
+        """Selesaikan periode saat ini."""
         if not self.frames:
             return
         
         last_frame = self.frames[-1]
         
-        # Cari frame pertama dengan state ini
+        # Cari frame awal.
         period_frames = []
         for frame in reversed(self.frames):
             if frame.state == self.current_state:
@@ -203,7 +177,7 @@ class FocusTracker:
         
         duration = (end_frame.timestamp - start_frame.timestamp).total_seconds()
         
-        # Hanya track periode yang meaningful (>= duration_threshold)
+        # Lacak periode signifikan.
         if duration >= self.duration_threshold or self.current_state == FocusState.NO_FACE:
             period = FocusPeriod(
                 start_time=start_frame.timestamp,
@@ -216,10 +190,7 @@ class FocusTracker:
             self.periods.append(period)
     
     def _regroup_periods(self):
-        """
-        Regroup all frames into continuous periods based on state changes
-        This ensures accurate period boundaries
-        """
+        """Grupkan ulang periode."""
         if not self.frames:
             return
         
@@ -236,7 +207,7 @@ class FocusTracker:
             elif frame.state == current_state:
                 current_period_frames.append(frame)
             else:
-                # State changed, save current period
+                # Simpan periode berjalan.
                 if current_period_frames:
                     start = current_period_frames[0].timestamp
                     end = current_period_frames[-1].timestamp
@@ -253,12 +224,12 @@ class FocusTracker:
                         )
                         self.periods.append(period)
                 
-                # Start new period
+                # Mulai periode baru.
                 current_state = frame.state
                 current_activity = frame.activity
                 current_period_frames = [frame]
         
-        # Don't forget last period
+        # Simpan periode terakhir.
         if current_period_frames:
             start = current_period_frames[0].timestamp
             end = current_period_frames[-1].timestamp
@@ -276,28 +247,15 @@ class FocusTracker:
                 self.periods.append(period)
     
     def get_final_report(self) -> Dict:
-        """
-        Calculate final focus report
-        
-        Returns:
-            {
-                'total_duration': float,  # Total seconds (including ignored)
-                'valid_duration': float,  # Valid seconds (excluding ignored)
-                'focused_duration': float,
-                'unfocused_duration': float,
-                'ignored_duration': float,
-                'focus_percentage': float,  # (fokus / (fokus + unfokus)) * 100
-                'periods': List[Dict],  # Detail setiap periode
-            }
-        """
-        # Finalize periode terakhir jika belum
+        """Hitung laporan akhir fokus."""
+        # Selesaikan periode terakhir.
         if self.frames and (not self.periods or self.periods[-1].end_time != self.frames[-1].timestamp):
-            # Group frames into periods
+            # Grupkan ke periode.
             if not self.periods or self.frames[-1].state != self.periods[-1].state:
-                # Need to create a new period or extend existing
+                # Buat periode baru.
                 self._finalize_current_period()
         
-        # Regroup all frames into continuous periods
+        # Grupkan ulang periode kontinyu.
         self._regroup_periods()
         
         total_duration = (self.last_frame_time - self.start_time).total_seconds() \
@@ -312,7 +270,7 @@ class FocusTracker:
             if period.state == FocusState.FOCUSED:
                 focused_duration += period.duration_seconds
             elif period.state == FocusState.PARTIALLY_FOCUSED:
-                # PARTIALLY_FOCUSED dihitung sebagai partial
+                # Fokus parsial dihitung parsial.
                 focused_duration += period.duration_seconds * 0.5
             elif period.state == FocusState.NOT_FOCUSED:
                 unfocused_duration += period.duration_seconds
@@ -321,8 +279,8 @@ class FocusTracker:
             elif period.state == FocusState.NO_FACE:
                 no_face_duration += period.duration_seconds
         
-        # Calculate focus percentage
-        # Hanya hitung dari focused + unfocused (ignored tidak dihitung)
+        # Hitung persentase fokus.
+        # Hanya hitung durasi valid.
         valid_duration = focused_duration + unfocused_duration
         
         if valid_duration > 0:
@@ -330,7 +288,7 @@ class FocusTracker:
         else:
             focus_percentage = 0
         
-        # Build periods report
+        # Buat laporan periode.
         periods_report = []
         for i, period in enumerate(self.periods):
             periods_report.append({
@@ -363,23 +321,23 @@ class FocusTracker:
         }
     
     def get_summary_string(self) -> str:
-        """Get human-readable summary"""
+        """Dapatkan ringkasan singkat."""
         report = self.get_final_report()
         
         summary = f"""
 ╔════════════════════════════════════════════════╗
-║       📊 FOCUS ANALYSIS REPORT                 ║
+║        FOCUS ANALYSIS REPORT                 ║
 ╠════════════════════════════════════════════════╣
 ║ Total Duration         : {report['total_duration_seconds']:>6.1f} s │
 ║ Valid Duration*        : {report['valid_duration_seconds']:>6.1f} s │
 ║                                                ║
-║ 🟢 Focused             : {report['focused_duration_seconds']:>6.1f} s │
-║ 🟡 Partially Focused   : {report['partially_focused_duration_seconds']:>6.1f} s │
-║ 🔴 Not Focused         : {report['unfocused_duration_seconds']:>6.1f} s │
-║ ⚪ Ignored (drink/etc) : {report['ignored_duration_seconds']:>6.1f} s │
-║ ❌ No Face Detected    : {report['no_face_duration_seconds']:>6.1f} s │
+║  Focused             : {report['focused_duration_seconds']:>6.1f} s │
+║  Partially Focused   : {report['partially_focused_duration_seconds']:>6.1f} s │
+║  Not Focused         : {report['unfocused_duration_seconds']:>6.1f} s │
+║  Ignored (drink/etc) : {report['ignored_duration_seconds']:>6.1f} s │
+║  No Face Detected    : {report['no_face_duration_seconds']:>6.1f} s │
 ║                                                ║
-║ ✅ FOCUS SCORE         : {report['focus_percentage']:>6.1f} % │
+║  FOCUS SCORE         : {report['focus_percentage']:>6.1f} % │
 ║ (fokus / (fokus+unfokus) × 100)               ║
 ║                                                ║
 ║ Total Frames           : {report['frame_count']:>6.0f}   │
@@ -391,10 +349,10 @@ class FocusTracker:
         return summary
     
     def print_detailed_periods(self):
-        """Print detailed breakdown of each period"""
+        """Cetak rincian periode."""
         report = self.get_final_report()
         
-        print("\n📋 DETAILED PERIOD BREAKDOWN:")
+        print("\n DETAILED PERIOD BREAKDOWN:")
         print("=" * 90)
         print(f"{'#':<4} {'State':<12} {'Activity':<12} {'Duration':<12} {'Frames':<8} {'Avg Focus':<10} {'Pitch/Yaw':<15}")
         print("-" * 90)
@@ -408,12 +366,12 @@ class FocusTracker:
         print("=" * 90)
 
 
-# Helper functions untuk integrate dengan GazeDetector
+# Fungsi bantuan integrator.
 
 def create_focus_tracker(focus_threshold_high=80,
                         focus_threshold_low=50,
                         duration_threshold=0.5) -> FocusTracker:
-    """Create new focus tracker dengan custom thresholds"""
+    """Buat pelacak fokus baru."""
     return FocusTracker(
         focus_threshold_high=focus_threshold_high,
         focus_threshold_low=focus_threshold_low,

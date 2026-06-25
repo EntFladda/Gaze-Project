@@ -1,10 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Export ImprovedHeadPoseModel to ONNX format for web deployment
-Smaller, faster, and more portable than PyTorch checkpoints
-"""
-
 import torch
 import argparse
 from pathlib import Path
@@ -32,13 +25,13 @@ def export_to_onnx(checkpoint_path, output_dir='web/public/models'):
     
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     
-    print(f"📦 Loading model from: {checkpoint_path}")
+    print(f" Loading model from: {checkpoint_path}")
     # Load model
     model = ImprovedHeadPoseModel(backbone='resnet50').to(device)
     model.load_state_dict(torch.load(checkpoint_path, map_location=device, weights_only=False))
     model.eval()
     
-    print(f"✅ Model loaded successfully")
+    print(f" Model loaded successfully")
     
     # Create dummy input
     dummy_input = torch.randn(1, 3, 224, 224).to(device)
@@ -46,7 +39,7 @@ def export_to_onnx(checkpoint_path, output_dir='web/public/models'):
     # Export to ONNX
     onnx_path = output_path / 'head_pose_model.onnx'
     
-    print(f"🔄 Exporting to ONNX: {onnx_path}")
+    print(f" Exporting to ONNX: {onnx_path}")
     torch.onnx.export(
         model,
         dummy_input,
@@ -59,7 +52,7 @@ def export_to_onnx(checkpoint_path, output_dir='web/public/models'):
     )
     
     onnx_size_mb = onnx_path.stat().st_size / (1024 * 1024)
-    print(f"✅ ONNX model exported: {onnx_path}")
+    print(f" ONNX model exported: {onnx_path}")
     print(f"   Size: {onnx_size_mb:.2f} MB")
     print(f"   Outputs: pose (batch, 2), confidence (batch, 1), roll (batch, 1)")
     
@@ -77,19 +70,19 @@ def main():
     
     checkpoint_path = Path(args.checkpoint)
     if not checkpoint_path.exists():
-        print(f"❌ Checkpoint not found: {checkpoint_path}")
+        print(f" Checkpoint not found: {checkpoint_path}")
         sys.exit(1)
     
     try:
         onnx_path = export_to_onnx(str(checkpoint_path), args.output)
-        print(f"\n✅ SUCCESS - Model exported to: {onnx_path}")
-        print(f"\n📝 Next steps for web deployment:")
+        print(f"\n SUCCESS - Model exported to: {onnx_path}")
+        print(f"\n Next steps for web deployment:")
         print(f"   1. Start static web server from web/")
         print(f"   2. Browser loads and caches public/models/head_pose_model.onnx")
         print(f"   3. No webcam frame upload is needed for on-device mode")
         
     except Exception as e:
-        print(f"❌ Export failed: {e}")
+        print(f" Export failed: {e}")
         import traceback
         traceback.print_exc()
         sys.exit(1)

@@ -29,6 +29,5 @@ MODEL_INPUT_SIZE = (224, 224)
 MODEL_OUTPUTS = 3  # pitch, yaw, roll
 
 # Ensure directories exist
-for directory in [RAW_DATA_DIR, PROCESSED_DATA_DIR, SPLITS_DIR, CACHE_DIR,
-                  CHECKPOINTS_DIR, FINAL_MODELS_DIR, ONNX_MODELS_DIR]:
+for directory in [RAW_DATA_DIR, PROCESSED_DATA_DIR, SPLITS_DIR, CACHE_DIR, CHECKPOINTS_DIR, FINAL_MODELS_DIR, ONNX_MODELS_DIR]:
     directory.mkdir(parents=True, exist_ok=True)

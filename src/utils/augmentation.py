@@ -1,10 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Advanced data augmentation untuk meningkatkan robustness pada lighting conditions
-dan akurasi deteksi mata
-"""
-
 import torch
 import torchvision.transforms as transforms
 import torchvision.transforms.functional as TF
@@ -13,11 +6,11 @@ from PIL import Image, ImageEnhance
 import cv2
 
 class AdaptiveImageAugmentation:
-    """Augmentasi khusus untuk lighting robustness"""
+    """Augmentasi untuk ketahanan pencahayaan."""
     
     @staticmethod
     def apply_brightness_shift(image, brightness_range=(-0.3, 0.3)):
-        """Shift brightness untuk simulasi kondisi gelap/terang"""
+        """Simulasi kondisi gelap atau terang."""
         if isinstance(image, torch.Tensor):
             image = TF.to_pil_image(image)
         
@@ -29,7 +22,7 @@ class AdaptiveImageAugmentation:
     
     @staticmethod
     def apply_contrast_adjustment(image, contrast_range=(0.7, 1.4)):
-        """Adjust contrast untuk berbagai lighting conditions"""
+        """Sesuaikan kontras berbagai kondisi."""
         if isinstance(image, torch.Tensor):
             image = TF.to_pil_image(image)
         
@@ -39,7 +32,7 @@ class AdaptiveImageAugmentation:
     
     @staticmethod
     def apply_color_shift(image, color_shift_range=(-0.1, 0.1)):
-        """Shift color untuk simulasi berbagai jenis pencahayaan"""
+        """Ubah warna simulasi pencahayaan."""
         if isinstance(image, torch.Tensor):
             image = np.array(TF.to_pil_image(image))
         else:
@@ -48,7 +41,7 @@ class AdaptiveImageAugmentation:
         # HSV adjustment
         image_hsv = cv2.cvtColor(image, cv2.COLOR_RGB2HSV).astype(np.float32)
         
-        # Shift hue sedikit untuk simulasi warm/cool lighting
+        # Simulasi pencahayaan hangat atau dingin.
         shift = np.random.uniform(*color_shift_range)
         image_hsv[:, :, 0] = np.clip(image_hsv[:, :, 0] + shift * 180, 0, 180)
         
@@ -63,7 +56,7 @@ class AdaptiveImageAugmentation:
     
     @staticmethod
     def apply_gaussian_blur(image, kernel_range=(1, 3)):
-        """Blur untuk simulasi low-resolution pada kondisi ekstrem"""
+        """Beri efek blur untuk low-resolution."""
         if isinstance(image, torch.Tensor):
             image = TF.to_pil_image(image)
         
@@ -72,7 +65,7 @@ class AdaptiveImageAugmentation:
     
     @staticmethod
     def apply_shadow_effect(image, intensity=0.3):
-        """Apply shadow effect untuk simulasi occlusion"""
+        """Simulasi oklusi dengan bayangan."""
         if isinstance(image, torch.Tensor):
             image = np.array(TF.to_pil_image(image))
         else:
@@ -95,7 +88,7 @@ class AdaptiveImageAugmentation:
     
     @staticmethod
     def apply_highlight_effect(image, intensity=0.2):
-        """Apply bright highlight untuk simulasi reflection"""
+        """Simulasi pantulan cahaya terang."""
         if isinstance(image, torch.Tensor):
             image = np.array(TF.to_pil_image(image))
         else:
@@ -103,12 +96,12 @@ class AdaptiveImageAugmentation:
         
         h, w = image.shape[:2]
         
-        # Random highlight region (lebih kecil dari shadow)
+        # Area highlight secara acak.
         size = max(h, w) // 6
         x = np.random.randint(0, w - size)
         y = np.random.randint(0, h - size)
         
-        # Apply brightening dengan gradient
+        # Terangkan menggunakan gradien.
         for c in range(3):
             highlight = image[y:y+size, x:x+size, c].astype(np.float32)
             highlight = np.clip(highlight * (1 + intensity), 0, 255)
@@ -118,10 +111,9 @@ class AdaptiveImageAugmentation:
 
 
 class LightingRobustAugmentation:
-    """Complete augmentation pipeline untuk lighting robustness"""
+    """Pipeline augmentasi ketahanan pencahayaan."""
     
-    def __init__(self, p_brightness=0.5, p_contrast=0.5, p_color=0.4, 
-                 p_shadow=0.2, p_highlight=0.2):
+    def __init__(self, p_brightness=0.5, p_contrast=0.5, p_color=0.4, p_shadow=0.2, p_highlight=0.2):
         self.p_brightness = p_brightness
         self.p_contrast = p_contrast
         self.p_color = p_color
@@ -129,7 +121,7 @@ class LightingRobustAugmentation:
         self.p_highlight = p_highlight
         self.augment = AdaptiveImageAugmentation()
         
-        # Basic transforms (tidak augmentasi brightness/contrast)
+        # Transformasi dasar tanpa pencahayaan.
         self.basic_transforms = transforms.Compose([
             transforms.RandomHorizontalFlip(p=0.5),
             transforms.RandomRotation(degrees=15),
@@ -162,13 +154,7 @@ class LightingRobustAugmentation:
 
 
 def get_augmented_transform(input_size=224, augmentation_strength='medium'):
-    """
-    Get augmentation transform pipeline
-    
-    Args:
-        input_size: Size untuk resize
-        augmentation_strength: 'weak', 'medium', 'strong'
-    """
+    """Dapatkan pipeline transformasi augmentasi."""
     
     if augmentation_strength == 'weak':
         p_brightness = 0.3
@@ -207,7 +193,7 @@ def get_augmented_transform(input_size=224, augmentation_strength='medium'):
 
 
 def get_val_transform(input_size=224):
-    """Get validation transform (tanpa augmentation)"""
+    """Transformasi validasi tanpa augmentasi."""
     return transforms.Compose([
         transforms.Resize((input_size, input_size)),
         transforms.ToTensor(),

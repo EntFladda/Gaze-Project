@@ -1,10 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-🎯 Improved Focus Tracker dengan Adaptive Thresholds
-Solusi untuk masalah detection "menoleh masih dihitung fokus"
-"""
-
 import numpy as np
 from datetime import datetime, timedelta
 from enum import Enum
@@ -244,18 +237,18 @@ class ImprovedFocusTracker:
         
         print(f"""
 ╔════════════════════════════════════════════════╗
-║     📊 IMPROVED FOCUS ANALYSIS REPORT          ║
+║      IMPROVED FOCUS ANALYSIS REPORT          ║
 ╠════════════════════════════════════════════════╣
 ║ Total Duration           : {report.get('total_duration_seconds', 0):>6.1f} s │
 ║ Total Frames             : {report.get('total_frames', 0):>6.0f}   │
 ║                                                ║
-║ 🟢 Focused               : {report.get('focused_frames', 0):>6.0f}   │
-║ 🟡 Partially Focused     : {report.get('partial_frames', 0):>6.0f}   │
-║ 🔴 Not Focused           : {report.get('unfocused_frames', 0):>6.0f}   │
-║ ⚪ Ignored               : {report.get('ignored_frames', 0):>6.0f}   │
-║ ❌ No Face               : {report.get('no_face_frames', 0):>6.0f}   │
+║  Focused               : {report.get('focused_frames', 0):>6.0f}   │
+║  Partially Focused     : {report.get('partial_frames', 0):>6.0f}   │
+║  Not Focused           : {report.get('unfocused_frames', 0):>6.0f}   │
+║  Ignored               : {report.get('ignored_frames', 0):>6.0f}   │
+║  No Face               : {report.get('no_face_frames', 0):>6.0f}   │
 ║                                                ║
-║ ✅ FOCUS SCORE           : {report.get('focus_score', 0):>6.1f} % │
+║  FOCUS SCORE           : {report.get('focus_score', 0):>6.1f} % │
 ║                                                ║
 ║ Head Angle Stats:                              ║
 ║   Average                : {report.get('avg_head_angle', 0):>6.1f}°  │

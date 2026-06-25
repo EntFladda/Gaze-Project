@@ -1,8 +1,3 @@
-"""
-Evaluation Script
-Evaluate trained model on test dataset
-"""
-
 import argparse
 import torch
 from torchvision import transforms

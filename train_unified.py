@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-🎯 UNIFIED TRAINING PIPELINE
+ UNIFIED TRAINING PIPELINE
 Consolidated training for Head Pose + Eye Tracking + Brightness Robustness
 Supports: 300W-LP, MPIIGaze, UnityEyes (via Kaggle)
 
@@ -204,9 +204,9 @@ def create_unified_dataloader(batch_size=32, num_workers=4):
         )
         datasets.append(dataset_300w)
         total_samples += len(dataset_300w)
-        print(f"  ✅ 300W-LP: {len(dataset_300w)} samples")
+        print(f"   300W-LP: {len(dataset_300w)} samples")
     except Exception as e:
-        print(f"  ⚠️  300W-LP failed: {e}")
+        print(f"  ️  300W-LP failed: {e}")
     
     # 2. Load MPIIGaze dataset
     try:
@@ -218,9 +218,9 @@ def create_unified_dataloader(batch_size=32, num_workers=4):
         )
         datasets.append(dataset_mpiigaze)
         total_samples += len(dataset_mpiigaze)
-        print(f"  ✅ MPIIGaze: {len(dataset_mpiigaze)} samples")
+        print(f"   MPIIGaze: {len(dataset_mpiigaze)} samples")
     except Exception as e:
-        print(f"  ⚠️  MPIIGaze failed: {e}")
+        print(f"  ️  MPIIGaze failed: {e}")
     
     # 3. Load Kaggle eye tracking dataset (if available)
     try:
@@ -232,7 +232,7 @@ def create_unified_dataloader(batch_size=32, num_workers=4):
         if len(dataset_kaggle) > 0:
             datasets.append(dataset_kaggle)
             total_samples += len(dataset_kaggle)
-            print(f"  ✅ Kaggle Eye Tracking: {len(dataset_kaggle)} samples")
+            print(f"   Kaggle Eye Tracking: {len(dataset_kaggle)} samples")
         else:
             print(f"  ℹ️  Kaggle dataset empty (optional)")
     except Exception as e:
@@ -315,8 +315,8 @@ def train_unified(args):
         learning_rate=args.learning_rate
     )
     
-    print(f"\n✅ Training complete!")
-    print(f"📦 Model saved to: checkpoints/final/head_pose_best.pt")
+    print(f"\n Training complete!")
+    print(f" Model saved to: checkpoints/final/head_pose_best.pt")
 
 
 def test_overfit(args):
@@ -344,7 +344,7 @@ def test_overfit(args):
     print(f"  Pose: {pose.shape} → {pose[0]}")
     print(f"  Confidence: {conf.shape}")
     print(f"  Roll: {roll.shape}")
-    print(f"✅ Model works!")
+    print(f" Model works!")
 
 
 def main():
