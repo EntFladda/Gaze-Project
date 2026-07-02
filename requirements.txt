@@ -1,0 +1,31 @@
+# Core Deep Learning
+torch>=2.0.0
+torchvision>=0.15.0
+pytorch-lightning>=2.0.0
+
+# Data & Utils
+numpy>=1.24.0
+pillow>=9.5.0
+scipy>=1.10.0
+opencv-python>=4.7.0
+tqdm>=4.65.0
+pandas>=2.0.0
+matplotlib>=3.7.0
+scikit-image>=0.20.0
+
+# Experiment Tracking & Logging
+wandb>=0.14.0
+tensorboard>=2.12.0
+
+# Mixed Precision & Optimization
+# PyTorch native AMP handles mixed precision - no APEX needed
+torch-optimizer>=0.2.2  # AdamW + other optimizers
+
+# Web Deployment & Export
+flask>=2.3.0          # Web server
+onnx>=1.14.0          # ONNX format support
+onnxruntime>=1.15.0   # Optimized ONNX inference
+requests>=2.31.0      # HTTP client
+
+# Model Interpretability (optional)
+# captum>=0.6.0  # Optional: for saliency maps

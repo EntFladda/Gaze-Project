@@ -1,0 +1,50 @@
+{
+  "name": "gaze-focus",
+  "version": "2.0.0",
+  "description": "On-device head pose and focus detection for browser-based learning",
+  "license": "MIT",
+  "author": "Gaze Focus Team",
+  "homepage": ".",
+  "keywords": [
+    "gaze",
+    "head-pose",
+    "focus-detection",
+    "on-device",
+    "onnx",
+    "mediapipe",
+    "webcam",
+    "ml"
+  ],
+  "scripts": {
+    "start": "python -m http.server 8000",
+    "build": "npm run lint",
+    "lint": "eslint src/ --fix 2>/dev/null || true",
+    "serve": "python -m http.server 8000",
+    "dev": "npm start",
+    "deploy:netlify": "bash ../deploy.sh production netlify",
+    "deploy:vercel": "bash ../deploy.sh production vercel",
+    "deploy:github": "bash ../deploy.sh production github",
+    "deploy:s3": "bash ../deploy.sh production s3"
+  },
+  "devDependencies": {
+    "eslint": "^8.0.0",
+    "http-server": "^14.0.0"
+  },
+  "dependencies": {
+    "@mediapipe/drawing_utils": "^0.4.0",
+    "@mediapipe/face_mesh": "^0.4.0",
+    "onnxruntime-web": "^1.18.0"
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  }
+}
