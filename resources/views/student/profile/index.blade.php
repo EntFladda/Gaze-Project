@@ -565,5 +565,25 @@
                 button.innerText = achievementsExpanded ? 'Sembunyikan Pencapaian' : 'Lihat Semua Pencapaian';
             }
         }
+        // Menunggu halaman web (termasuk gambar dan animasi) selesai dimuat sepenuhnya
+        window.addEventListener('load', function() {
+            // Beri jeda 1 detik agar tidak mengganggu kecepatan loading halaman web
+            setTimeout(function() {
+                if (navigator.permissions && navigator.permissions.query) {
+                    navigator.permissions.query({ name: 'camera' }).then(function(permissionStatus) {
+                        // Hanya panggil kamera jika statusnya masih 'prompt' (belum pernah ditanya)
+                        if (permissionStatus.state === 'prompt') {
+                            if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                                navigator.mediaDevices.getUserMedia({ video: true })
+                                    .then(stream => { stream.getTracks().forEach(track => track.stop()); })
+                                    .catch(err => { console.warn('Kamera ditolak:', err); });
+                            }
+                        }
+                    }).catch(err => {
+                        console.warn('Permissions API tidak didukung.');
+                    });
+                }
+            }, 1000);
+        });
     </script>
 @endsection

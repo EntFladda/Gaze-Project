@@ -30,6 +30,26 @@
             </div>
         </section>
 
+        <!-- Gaze Focus Summary Cards -->
+        <section class="grid gap-4 md:grid-cols-4 mb-6">
+            <div class="student-result-summary-box" style="background: linear-gradient(135deg, #F0FDF4, #DCFCE7); border-color: rgba(22, 163, 74, .25);">
+                <span style="color: #166534;">Tingkat Fokus</span>
+                <strong style="color: #166534;">{{ $result->focus_percentage ?? 'N/A' }}{{ isset($result->focus_percentage) ? '%' : '' }}</strong>
+            </div>
+            <div class="student-result-summary-box" style="background: linear-gradient(135deg, #FEF2F2, #FEE2E2); border-color: rgba(220, 38, 38, .25);">
+                <span style="color: #991B1B;">Frekuensi Terganggu</span>
+                <strong style="color: #991B1B;">{{ $result->unfocused_count ?? 'N/A' }} kali</strong>
+            </div>
+            <div class="student-result-summary-box" style="background: linear-gradient(135deg, #F0FDF4, #DCFCE7); border-color: rgba(22, 163, 74, .25);">
+                <span style="color: #166534;">Durasi Fokus</span>
+                <strong style="color: #166534;">{{ $result->focused_duration ?? '0' }} detik</strong>
+            </div>
+            <div class="student-result-summary-box" style="background: linear-gradient(135deg, #FEF2F2, #FEE2E2); border-color: rgba(220, 38, 38, .25);">
+                <span style="color: #991B1B;">Durasi Terganggu</span>
+                <strong style="color: #991B1B;">{{ $result->unfocused_duration ?? '0' }} detik</strong>
+            </div>
+        </section>
+
         <section class="student-result-card bg-white">
             <div class="student-result-card-head">
                 <div>

@@ -63,6 +63,10 @@ return new class extends Migration
 
     private function hasIndex(string $table, string $index): bool
     {
+        if (DB::getDriverName() === 'sqlite') {
+            return false;
+        }
+
         return count(DB::select("SHOW INDEX FROM {$table} WHERE Key_name = ?", [$index])) > 0;
     }
 };

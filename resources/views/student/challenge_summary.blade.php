@@ -196,6 +196,18 @@
                 <p class="summary-label">Durasi</p>
                 <p class="summary-value text-2xl md:text-3xl">{{ $durationText }}</p>
             </div>
+
+            <!-- Gaze Focus Summary Cards -->
+            <div class="summary-card summary-stat" style="background: linear-gradient(135deg, #F0FDF4, #DCFCE7); border-color: rgba(22, 163, 74, .25);">
+                <p class="summary-label" style="color: #166534;">📷 Tingkat Fokus</p>
+                <p id="gaze-focus-percent" class="summary-value" style="color: #166534;">—</p>
+                <p id="gaze-focus-feedback" class="summary-note" style="color: #15803d;"></p>
+            </div>
+            <div class="summary-card summary-stat" style="background: linear-gradient(135deg, #FEF2F2, #FEE2E2); border-color: rgba(220, 38, 38, .25);">
+                <p class="summary-label" style="color: #991B1B;">⚠️ Frekuensi Terganggu</p>
+                <p id="gaze-unfocus-count" class="summary-value" style="color: #991B1B;">—</p>
+                <p class="summary-note" style="color: #B91C1C;">Jumlah deteksi tidak fokus yang memicu peringatan.</p>
+            </div>
         </section>
 
         <div class="mt-5 grid gap-5 xl:grid-cols-[minmax(0,1.35fr)_360px]">
@@ -267,6 +279,44 @@
             </aside>
         </div>
     </main>
+    <script>
+        (function() {
+            const challengeId = '{{ $challengeResult->challenge_id }}';
+            const attemptNumber = '{{ $challengeResult->attempt_number }}';
+            const key = `gaze_session_${challengeId}_attempt_${attemptNumber}`;
+
+            try {
+                const raw = localStorage.getItem(key);
+                if (!raw) {
+                    document.getElementById('gaze-focus-percent').textContent = 'N/A';
+                    document.getElementById('gaze-focus-feedback').textContent = 'Data fokus tidak tersedia untuk attempt ini.';
+                    document.getElementById('gaze-unfocus-count').textContent = '0 kali';
+                    return;
+                }
+
+                const data = JSON.parse(raw);
+                const pct = data.focusPercentage ?? 0;
+                const cnt = data.unfocusedCount ?? 0;
+
+                document.getElementById('gaze-focus-percent').textContent = pct + '%';
+                document.getElementById('gaze-unfocus-count').textContent = cnt + ' kali';
+
+                let feedback = '';
+                if (pct >= 90) {
+                    feedback = 'Luar biasa! Fokusmu sangat baik sepanjang misi. 🎯';
+                } else if (pct >= 70) {
+                    feedback = 'Cukup baik! Ada beberapa gangguan, tapi secara keseluruhan fokus terjaga. 👍';
+                } else if (pct >= 50) {
+                    feedback = 'Perlu ditingkatkan. Coba kurangi distraksi saat mengerjakan misi. 💪';
+                } else {
+                    feedback = 'Fokus sangat rendah. Pastikan kamu berada di lingkungan yang kondusif. ⚠️';
+                }
+                document.getElementById('gaze-focus-feedback').textContent = feedback;
+            } catch (e) {
+                console.warn('[GazeSummary] Error reading gaze data:', e);
+            }
+        })();
+    </script>
 </body>
 
 </html>

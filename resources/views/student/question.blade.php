@@ -8,11 +8,74 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <link rel="icon" type="image/png" href="{{ asset('favicon-ctg.png') }}">
+    
+    <!-- ONNX Runtime Web & MediaPipe FaceMesh for gaze tracking -->
+    <script src="https://cdn.jsdelivr.net/npm/onnxruntime-web/dist/ort.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js" crossorigin="anonymous"></script>
+    <script src="{{ asset('js/gaze-tracker.js') }}"></script>
 </head>
 
 <body class="question-theme-root min-h-screen text-white">
-    <div class="max-w-7xl mx-auto px-4 py-8">
-        <div class="question-shell text-slate-900 rounded-3xl shadow-xl overflow-hidden">
+    <div class="max-w-7xl mx-auto px-4 py-8 grid lg:grid-cols-[310px_1fr] gap-6 items-start">
+        <!-- GAZE FOCUS MONITOR SIDEBAR -->
+        <div class="gaze-monitoring-panel bg-slate-900/90 text-white rounded-3xl p-5 border border-slate-700/50 shadow-2xl backdrop-blur-md sticky top-8 flex flex-col gap-4">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                <div class="flex items-center gap-2">
+                    <span class="relative flex h-2.5 w-2.5">
+                        <span id="cameraActiveIndicator" class="animate-pulse absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-500"></span>
+                    </span>
+                    <h2 class="text-xs font-extrabold uppercase tracking-wider text-slate-200">Gaze Monitor</h2>
+                </div>
+                <span id="cacheBadge" class="px-2 py-0.5 rounded-md bg-slate-800 text-slate-400 border border-slate-700/50 text-[10px] font-semibold">ONNX Offline</span>
+            </div>
+
+            <!-- Mirrored Camera Preview Container -->
+            <div id="camera-preview-container" class="relative w-36 aspect-square mx-auto bg-slate-950 rounded-2xl overflow-hidden border border-slate-800 shadow-inner flex items-center justify-center">
+                <!-- Camera is mirrored using transform: scaleX(-1) -->
+                <video id="videoInput" class="w-full h-full object-cover hidden" style="transform: scaleX(-1);" autoplay muted playsinline></video>
+                <canvas id="canvas" class="absolute inset-0 w-full h-full object-cover" style="transform: scaleX(-1);"></canvas>
+                <div id="camera-loading" class="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-slate-950 text-slate-400 text-xs">
+                    <svg class="animate-spin h-5 w-5 text-sky-500" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <span>Mengakses Kamera...</span>
+                </div>
+            </div>
+
+            <!-- Status and stats -->
+            <div class="flex flex-col gap-3">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs text-slate-400 font-medium">Status Fokus:</span>
+                    <span id="focusStatusBadge" class="px-3 py-1 rounded-full text-xs font-bold bg-slate-800 text-slate-400 border border-slate-700">IDLE</span>
+                </div>
+                <div class="grid grid-cols-2 gap-2 text-center text-xs">
+                    <div class="bg-slate-950/40 rounded-xl p-2 border border-slate-800/80">
+                        <p class="text-[10px] text-slate-500 uppercase tracking-wider font-bold">Tidak Fokus</p>
+                        <p id="unfocusCountVal" class="text-base font-black text-red-400 mt-1">0 kali</p>
+                    </div>
+                    <div class="bg-slate-950/40 rounded-xl p-2 border border-slate-800/80">
+                        <p class="text-[10px] text-slate-500 uppercase tracking-wider font-bold">Tingkat Fokus</p>
+                        <p id="focusPercentageVal" class="text-base font-black text-sky-400 mt-1">100%</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Options -->
+            <div class="flex items-center justify-between border-t border-slate-800 pt-3">
+                <label class="inline-flex items-center cursor-pointer text-[10px] text-slate-400 select-none">
+                    <input type="checkbox" id="showCameraToggle" onchange="document.getElementById('camera-preview-container').style.display = this.checked ? 'flex' : 'none';" class="sr-only peer" checked>
+                    <div class="relative w-7 h-4 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-slate-400 after:border-slate-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-sky-600 peer-checked:after:bg-white"></div>
+                    <span class="ms-2">Tampilkan Kamera</span>
+                </label>
+                <button onclick="window.tracker?.poseCalculator.recalibrate()" class="text-[10px] text-sky-400 font-extrabold hover:text-sky-300 transition uppercase tracking-wider">Kalibrasi</button>
+            </div>
+        </div>
+
+        <div class="question-shell text-slate-900 rounded-3xl shadow-xl overflow-hidden w-full">
             <div class="question-hero px-6 py-4 flex items-center justify-between">
                 <div>
                     <p class="question-kicker text-sm uppercase tracking-[0.24em]">Misi Berjalan</p>
@@ -143,6 +206,29 @@
                         Ya, kunci
                     </button>
                 </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- MODAL WARNING: TIDAK FOKUS -->
+    <div id="unfocus-modal" class="hidden fixed inset-0 z-[100] bg-slate-950/85 px-4 flex items-center justify-center backdrop-blur-md">
+        <div class="bg-white text-slate-900 rounded-3xl max-w-md w-full p-8 shadow-2xl border border-red-200 transform scale-100 transition-all duration-300">
+            <div class="text-center">
+                <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-red-100 text-red-600 mb-4 animate-bounce">
+                    <svg class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                    </svg>
+                </div>
+                <h3 class="text-2xl font-bold text-slate-900 tracking-tight">Peringatan: Tidak Fokus!</h3>
+                <p class="text-slate-600 mt-3 text-sm leading-relaxed font-semibold">
+                    Kamu terdeteksi sedang tidak fokus atau melihat ke luar area soal. Silakan klik tombol di bawah untuk melanjutkan misi.
+                </p>
+            </div>
+            <div class="mt-8">
+                <button onclick="resumeFromUnfocus()" class="w-full rounded-2xl bg-gradient-to-r from-red-600 to-amber-500 hover:from-red-500 hover:to-amber-400 text-white py-4 font-bold text-md shadow-lg transition-all transform hover:-translate-y-0.5">
+                    Oke, Lanjutkan Misi
+                </button>
             </div>
         </div>
     </div>
@@ -1013,8 +1099,32 @@
 
             $("#next-btn").prop("disabled", true).addClass("opacity-60 cursor-not-allowed");
 
+            let focusData = {};
+            try {
+                const challengeId = currentChallengeId || '0';
+                const attemptNumber = '{{ $attemptNumber ?? 1 }}';
+                const key = `gaze_session_${challengeId}_attempt_${attemptNumber}`;
+                const raw = localStorage.getItem(key);
+                if (raw) {
+                    const parsed = JSON.parse(raw);
+                    // Hitung durasi fokus = totalFrames / 30, lalu dibulatkan
+                    const focusedFrames = parsed.focusedFrames || 0;
+                    const focusedDuration = Math.round(focusedFrames / 30);
+                    
+                    focusData = {
+                        focus_percentage: parsed.focusPercentage || 0,
+                        unfocused_count: parsed.unfocusedCount || 0,
+                        focused_duration: focusedDuration,
+                        unfocused_duration: parsed.totalUnfocusDuration || 0
+                    };
+                }
+            } catch (e) {
+                console.warn('[GazeSync] Failed to read focus data', e);
+            }
+
             $.get(nextQuestionUrl, {
-                ajax: 1
+                ajax: 1,
+                ...focusData
             }, function(data) {
                 if (data.redirect_url) {
                     navigateWithMusicState(data.redirect_url);
@@ -1351,7 +1461,48 @@
             });
             window.addEventListener("beforeunload", saveBackgroundMusicTime);
             window.addEventListener("pagehide", saveBackgroundMusicTime);
+
+            // --- Gaze Focus Tracker Boot ---
+            (async function bootGazeTracker() {
+                try {
+                    const challengeId = currentChallengeId || '0';
+                    const attemptNumber = '{{ $attemptNumber ?? 1 }}';
+
+                    window.tracker = new GazeTracker({
+                        challengeId: challengeId,
+                        attemptNumber: attemptNumber,
+                        videoId: 'videoInput',
+                        canvasId: 'canvas',
+                        statusBadgeId: 'focusStatusBadge',
+                        unfocusCountId: 'unfocusCountVal',
+                        focusPercentageId: 'focusPercentageVal',
+                        unfocusThreshold: 10.0, // 10 detik tidak fokus = alert
+                    });
+
+                    const ok = await window.tracker.initialize();
+                    if (ok) {
+                        await window.tracker.start();
+                        // Hide loading spinner once camera is active
+                        const loadingEl = document.getElementById('camera-loading');
+                        if (loadingEl) loadingEl.classList.add('hidden');
+                        // Show video
+                        const videoEl = document.getElementById('videoInput');
+                        if (videoEl) videoEl.classList.remove('hidden');
+                    }
+                } catch (e) {
+                    console.error('[GazeBoot] Failed to start gaze tracker:', e);
+                }
+            })();
         });
+
+        // Resume from unfocus modal
+        function resumeFromUnfocus() {
+            if (window.tracker) {
+                window.tracker.resumeFromAlert();
+            } else {
+                document.getElementById('unfocus-modal')?.classList.add('hidden');
+            }
+        }
     </script>
 </body>
 

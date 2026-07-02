@@ -22,6 +22,10 @@ class ChallengeResult extends Model
         'total_exp',
         'correct_answers',
         'wrong_answers',
+        'focus_percentage',
+        'unfocused_count',
+        'focused_duration',
+        'unfocused_duration',
     ];
 
     public function user()

@@ -498,5 +498,6 @@
                 }
             });
         }
+
     </script>
 @endsection

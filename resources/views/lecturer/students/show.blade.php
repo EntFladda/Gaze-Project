@@ -8,6 +8,12 @@
         $answered = $totalCorrect + $totalWrong;
         $accuracy = $answered > 0 ? round(($totalCorrect / $answered) * 100) : 0;
         $completedMissions = $results->whereNotNull('ended_at')->pluck('challenge_id')->unique()->count();
+
+        $resultsWithFocus = $results->whereNotNull('focus_percentage');
+        $avgFocusPct = $resultsWithFocus->count() > 0 ? round($resultsWithFocus->avg('focus_percentage')) : 0;
+        $totalUnfocusedCount = $results->sum('unfocused_count');
+        $avgFocusedDuration = $resultsWithFocus->count() > 0 ? round($resultsWithFocus->avg('focused_duration')) : 0;
+        $avgUnfocusedDuration = $resultsWithFocus->count() > 0 ? round($resultsWithFocus->avg('unfocused_duration')) : 0;
     @endphp
 
     <div class="student-detail-page">
@@ -46,6 +52,25 @@
             <article class="student-summary-card bg-white">
                 <span>Akurasi</span>
                 <strong>{{ $accuracy }}%</strong>
+            </article>
+        </section>
+
+        <section class="student-summary-grid mt-4">
+            <article class="student-summary-card" style="background: linear-gradient(135deg, #F0FDF4, #DCFCE7); border: 1px solid rgba(22, 163, 74, .25);">
+                <span style="color: #166534;">Rata-rata Fokus</span>
+                <strong style="color: #166534;">{{ $avgFocusPct }}%</strong>
+            </article>
+            <article class="student-summary-card" style="background: linear-gradient(135deg, #FEF2F2, #FEE2E2); border: 1px solid rgba(220, 38, 38, .25);">
+                <span style="color: #991B1B;">Total Gangguan</span>
+                <strong style="color: #991B1B;">{{ $totalUnfocusedCount }} kali</strong>
+            </article>
+            <article class="student-summary-card" style="background: linear-gradient(135deg, #F0FDF4, #DCFCE7); border: 1px solid rgba(22, 163, 74, .25);">
+                <span style="color: #166534;">Rata-rata Durasi Fokus</span>
+                <strong style="color: #166534;">{{ $avgFocusedDuration }}s</strong>
+            </article>
+            <article class="student-summary-card" style="background: linear-gradient(135deg, #FEF2F2, #FEE2E2); border: 1px solid rgba(220, 38, 38, .25);">
+                <span style="color: #991B1B;">Rata-rata Durasi Terganggu</span>
+                <strong style="color: #991B1B;">{{ $avgUnfocusedDuration }}s</strong>
             </article>
         </section>
 
@@ -100,6 +125,8 @@
                             <th>EXP</th>
                             <th>Benar</th>
                             <th>Koreksi</th>
+                            <th>Fokus</th>
+                            <th>Gg. Fokus</th>
                             <th>Durasi</th>
                             <th>Aksi</th>
                         </tr>
@@ -118,6 +145,8 @@
                                 <td>{{ $result->total_exp }}</td>
                                 <td><span class="result-pill success">{{ $result->correct_answers }}</span></td>
                                 <td><span class="result-pill danger">{{ $result->wrong_answers }}</span></td>
+                                <td>{{ $result->focus_percentage ?? '-' }}%</td>
+                                <td>{{ $result->unfocused_count ?? '-' }}x</td>
                                 <td>{{ $duration }}</td>
                                 <td>
                                     <a href="{{ route('lecturer.students.detail_result', ['student' => $student->id, 'challenge' => $result->challenge_id, 'attempt' => $result->attempt_number]) }}"
@@ -126,7 +155,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="8">
+                                <td colspan="10">
                                     <div class="students-empty">Belum ada hasil mission untuk mahasiswa ini.</div>
                                 </td>
                             </tr>

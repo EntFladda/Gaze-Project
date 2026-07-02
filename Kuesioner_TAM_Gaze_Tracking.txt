@@ -1,0 +1,51 @@
+KUESIONER EVALUASI FITUR DETEKSI FOKUS (TAM)
+
+Kuesioner ini dirancang untuk mengevaluasi Fitur Deteksi Fokus menggunakan Kamera saat mengerjakan misi.
+
+Keterangan Skala:
+1 = Sangat Tidak Setuju
+2 = Tidak Setuju
+3 = Netral
+4 = Setuju
+5 = Sangat Setuju
+
+=======================================================
+Bagian 1: Perceived Usefulness (Persepsi Kegunaan)
+=======================================================
+PU1. Peringatan "Tidak Fokus" membantu saya sadar saat kehilangan konsentrasi.
+PU2. Fitur ini efektif mendorong saya untuk kembali fokus mengerjakan soal.
+PU3. Ringkasan metrik fokus (Tingkat Fokus & Gangguan) berguna untuk evaluasi diri.
+PU4. Secara keseluruhan, fitur ini bermanfaat untuk menjaga kedisiplinan belajar.
+
+=======================================================
+Bagian 2: Perceived Ease of Use (Persepsi Kemudahan Penggunaan)
+=======================================================
+PE1. Mengizinkan akses kamera di browser sangat mudah.
+PE2. Pop-up peringatan "Tidak Fokus" mudah dipahami dan ditutup.
+PE3. Fitur kamera ini tidak membuat komputer/laptop saya menjadi lambat (lag).
+PE4. Secara keseluruhan, fitur pelacakan fokus ini mudah digunakan.
+
+=======================================================
+Bagian 3: Attitude Toward Using (Sikap terhadap Penggunaan)
+=======================================================
+AT1. Saya merasa nyaman wajah saya dipantau kamera saat mengerjakan soal.
+AT2. Peringatan yang muncul terasa wajar dan tidak mengintimidasi.
+AT3. Saya mendukung penggunaan teknologi deteksi fokus dalam pembelajaran.
+
+=======================================================
+Bagian 4: Behavioral Intention to Use (Niat Menggunakan)
+=======================================================
+BI1. Saya bersedia mengaktifkan fitur ini setiap kali belajar atau ujian mandiri.
+BI2. Saya akan merekomendasikan fitur deteksi fokus ini kepada orang lain.
+
+=======================================================
+Bagian 5: Aspek Privasi & Kepercayaan (Trust)
+=======================================================
+PR1. Saya merasa aman karena sistem hanya membaca posisi kepala, bukan merekam video.
+PR2. Saya percaya privasi saya terjaga saat menggunakan fitur kamera ini.
+
+=======================================================
+Bagian 6: Masukan Singkat (Essay)
+=======================================================
+1. Apakah sistem pernah memberi peringatan padahal Anda sedang fokus membaca? (Tuliskan pengalaman Anda)
+2. Apa saran perbaikan Anda untuk fitur deteksi fokus ini?

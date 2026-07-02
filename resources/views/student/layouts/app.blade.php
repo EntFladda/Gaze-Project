@@ -1018,10 +1018,22 @@
             document.addEventListener('error', function(event) {
                 const image = event.target;
                 if (image?.tagName === 'IMG' && image.src.includes('/storage/profile_photos/')) {
-                    image.src = "{{ asset('storage/profile_photos/default-3d.svg') }}";
+                    const fallbackSrc = "{{ asset('storage/profile_photos/default-3d.svg') }}";
+                    if (!image.src.includes('default-3d.svg')) {
+                        image.src = fallbackSrc;
+                    }
                 }
             }, true);
         });
+    </script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js').catch(err => {
+                    console.log('SW registration failed: ', err);
+                });
+            });
+        }
     </script>
 </body>
 

@@ -257,6 +257,12 @@ class StudentQuestionController extends Controller
 
             if ($challengeResult) {
                 $challengeResult->ended_at = now();
+                if ($request->has('focus_percentage')) {
+                    $challengeResult->focus_percentage = $request->input('focus_percentage');
+                    $challengeResult->unfocused_count = $request->input('unfocused_count');
+                    $challengeResult->focused_duration = $request->input('focused_duration');
+                    $challengeResult->unfocused_duration = $request->input('unfocused_duration');
+                }
                 $challengeResult->save();
 
                 $previousBestResult = ChallengeResult::where('user_id', $user->id)
@@ -330,11 +336,11 @@ class StudentQuestionController extends Controller
 
         if ($request->boolean('ajax')) {
             return response()->json([
-                'html' => view('student.partials.question_session', compact('question', 'progress', 'questionNumber', 'totalQuestions'))->render(),
+                'html' => view('student.partials.question_session', compact('question', 'progress', 'questionNumber', 'totalQuestions', 'attemptNumber'))->render(),
             ]);
         }
 
-        return view('student.question', compact('question', 'progress', 'questionNumber', 'totalQuestions'));
+        return view('student.question', compact('question', 'progress', 'questionNumber', 'totalQuestions', 'attemptNumber'));
     }
 
     public function challengeSummary($challenge_id, $attempt_number)
